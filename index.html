@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hanabee — Subscription Delivery Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --moss:#2f3b2a;
+    --moss-deep:#20281c;
+    --leaf:#5c7a52;
+    --stem:#8fae7c;
+    --bloom:#c98a9c;
+    --bloom-soft:#f3e3e6;
+    --ivory:#faf7f0;
+    --paper:#ffffff;
+    --ink:#26291f;
+    --ink-soft:#6b6a5e;
+    --line:#e7e2d4;
+    --amber:#c98325;
+    --danger:#b3492f;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(38,41,31,0.06), 0 8px 24px -12px rgba(38,41,31,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ivory);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  ::selection{background:var(--bloom-soft);}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+
+  /* ---------- Auth gate ---------- */
+  #authGate{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, #3a4a33 0%, var(--moss-deep) 60%);
+  }
+  .auth-card{
+    background:var(--paper);border-radius:20px;padding:48px 44px;
+    width:min(380px,90vw);text-align:center;box-shadow:var(--shadow);
+  }
+  .auth-mark{
+    width:52px;height:52px;margin:0 auto 20px;border-radius:50%;
+    background:var(--bloom-soft);display:flex;align-items:center;justify-content:center;
+    font-size:24px;
+  }
+  .auth-card h1{font-size:26px;color:var(--moss-deep);margin-bottom:6px;}
+  .auth-card p{color:var(--ink-soft);font-size:14px;line-height:1.5;margin:0 0 26px;}
+  .btn{
+    border:none;border-radius:10px;padding:12px 20px;font-size:14px;font-weight:600;
+    cursor:pointer;transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+    font-family:'Inter',sans-serif;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--moss);color:#fff;}
+  .btn-primary:hover{background:var(--moss-deep);}
+  .btn-google{background:#fff;color:var(--ink);border:1px solid var(--line);width:100%;
+    display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;}
+  .btn-google:hover{border-color:var(--leaf);}
+  .auth-error{color:var(--danger);font-size:13px;margin-top:14px;}
+  .hidden{display:none !important;}
+
+  /* ---------- App shell ---------- */
+  #app{min-height:100vh;}
+  header.top{
+    background:var(--moss-deep);color:#fff;padding:20px 32px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:36px;height:36px;border-radius:50%;background:var(--bloom);
+    display:flex;align-items:center;justify-content:center;font-size:17px;}
+  .brand-text h1{font-size:19px;color:#fff;letter-spacing:.2px;}
+  .brand-text span{font-size:11.5px;color:#c7d4be;text-transform:uppercase;letter-spacing:1.2px;}
+  .top-right{display:flex;align-items:center;gap:14px;}
+  .user-chip{font-size:13px;color:#dfe6d8;}
+  .btn-ghost{background:transparent;border:1px solid #4a5b41;color:#e6ead9;padding:9px 14px;border-radius:9px;font-size:13px;}
+  .btn-ghost:hover{background:#3a4a33;}
+
+  nav.tabs{
+    display:flex;gap:4px;padding:14px 32px 0;background:var(--ivory);
+    border-bottom:1px solid var(--line);
+  }
+  .tab-btn{
+    background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;
+    color:var(--ink-soft);cursor:pointer;border-radius:10px 10px 0 0;position:relative;top:1px;
+    font-family:'Inter',sans-serif;
+  }
+  .tab-btn.active{color:var(--moss-deep);background:var(--paper);border:1px solid var(--line);border-bottom-color:var(--paper);}
+
+  main{padding:26px 32px 60px;max-width:1180px;margin:0 auto;}
+
+  /* Dashboard stat row */
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
+  .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);}
+  .stat-card .num{font-family:'Fraunces',serif;font-size:32px;color:var(--moss-deep);line-height:1;}
+  .stat-card .label{font-size:12.5px;color:var(--ink-soft);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;}
+  .stat-card.warn .num{color:var(--amber);}
+  .stat-card.danger .num{color:var(--danger);}
+
+  section.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;margin-bottom:22px;box-shadow:var(--shadow);}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .panel-head h2{font-size:18px;color:var(--moss-deep);}
+
+  /* Delivery row list */
+  .d-row{
+    display:flex;align-items:center;gap:14px;padding:12px 10px;border-radius:10px;
+    border-bottom:1px solid var(--line);
+  }
+  .d-row:last-child{border-bottom:none;}
+  .d-check{
+    width:22px;height:22px;border-radius:6px;border:2px solid var(--stem);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+    background:#fff;font-size:13px;color:transparent;transition:.15s;
+  }
+  .d-check.done{background:var(--leaf);border-color:var(--leaf);color:#fff;}
+  .d-check.missed{background:var(--danger);border-color:var(--danger);color:#fff;}
+  .d-main{flex:1;min-width:0;}
+  .d-name{font-weight:600;font-size:14.5px;}
+  .d-sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+  .d-date{font-size:13px;font-weight:600;text-align:right;white-space:nowrap;}
+  .d-date .rel{display:block;font-size:11px;font-weight:500;color:var(--ink-soft);margin-top:1px;}
+  .badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    padding:3px 8px;border-radius:100px;}
+  .badge.weekly{background:#e4ecdd;color:var(--leaf);}
+  .badge.biweekly{background:var(--bloom-soft);color:var(--bloom);}
+  .badge.today{background:#fbe7c9;color:var(--amber);}
+  .badge.overdue{background:#f6ded7;color:var(--danger);}
+
+  .empty{color:var(--ink-soft);font-size:13.5px;padding:20px 4px;text-align:center;}
+
+  /* Subscriber table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);
+    padding:8px 10px;border-bottom:2px solid var(--line);}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .status-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;text-transform:capitalize;}
+  .status-pill.active{background:#e4ecdd;color:var(--leaf);}
+  .status-pill.paused{background:#fbe7c9;color:var(--amber);}
+  .status-pill.cancelled{background:#eee;color:var(--ink-soft);}
+  .link-btn{background:none;border:none;color:var(--moss);font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
+  .link-btn:hover{text-decoration:underline;}
+  .link-btn.danger{color:var(--danger);}
+
+  /* Form */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+  .field input, .field select{
+    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;
+    font-family:'Inter',sans-serif;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field select:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px #e4ecdd;}
+  .form-actions{margin-top:18px;display:flex;gap:10px;}
+
+  /* Calendar */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav{display:flex;gap:6px;}
+  .cal-nav button{background:var(--ivory);border:1px solid var(--line);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-dow{font-size:11px;text-transform:uppercase;color:var(--ink-soft);text-align:center;padding-bottom:6px;font-weight:700;}
+  .cal-cell{
+    min-height:84px;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fff;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .cal-cell.other-month{background:#f6f4ec;opacity:.5;}
+  .cal-cell.is-today{border-color:var(--leaf);box-shadow:0 0 0 1px var(--leaf) inset;}
+  .cal-daynum{font-size:12px;font-weight:700;color:var(--ink-soft);}
+  .cal-pill{
+    font-size:10.5px;padding:2px 6px;border-radius:6px;background:#e4ecdd;color:var(--moss-deep);
+    cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;
+  }
+  .cal-pill.missed{background:#f6ded7;color:var(--danger);}
+  .cal-pill.delivered{background:#e0e6d6;color:var(--leaf);text-decoration:line-through;opacity:.7;}
+  .cal-more{font-size:10px;color:var(--ink-soft);}
+
+  /* Modal */
+  .modal-backdrop{
+    position:fixed;inset:0;background:rgba(32,40,28,0.45);display:flex;align-items:center;justify-content:center;
+    z-index:50;padding:20px;
+  }
+  .modal{background:#fff;border-radius:16px;padding:26px;width:min(420px,100%);box-shadow:var(--shadow);max-height:86vh;overflow:auto;}
+  .modal h3{font-size:18px;color:var(--moss-deep);margin-bottom:14px;}
+  .modal .d-row{padding:10px 4px;}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--moss-deep);color:#fff;padding:11px 20px;border-radius:100px;font-size:13.5px;
+    box-shadow:var(--shadow);z-index:60;opacity:0;transition:opacity .25s ease;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  @media (max-width:640px){
+    header.top,nav.tabs,main{padding-left:16px;padding-right:16px;}
+    .d-date{text-align:left;}
+    .cal-cell{min-height:64px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== AUTH GATE ===================== -->
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-mark">🌸</div>
+    <h1>Hanabee</h1>
+    <p>Subscription delivery tracker.<br>Sign in with the Hanabee Google account to continue.</p>
+    <button class="btn btn-google" id="googleSignIn">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.91c1.7-1.57 2.69-3.88 2.69-6.64z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.27c-.81.54-1.84.86-3.05.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.34C2.44 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.96H.96A8.996 8.996 0 000 9c0 1.45.35 2.83.96 4.04l3.01-2.34z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+    <div class="auth-error hidden" id="authError"></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">🌸</div>
+      <div class="brand-text">
+        <h1>Subscription Tracker</h1>
+        <span>Hanabee Deliveries</span>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="user-chip mono" id="userChip"></span>
+      <button class="btn-ghost" id="signOutBtn">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="calendar">Calendar</button>
+    <button class="tab-btn" data-tab="subscribers">Subscribers</button>
+    <button class="tab-btn" data-tab="add">+ Add Subscriber</button>
+  </nav>
+
+  <main>
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="stat-row" id="statRow"></div>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Due today</h2></div>
+        <div id="dueToday"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>Due this week</h2></div>
+        <div id="dueWeek"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2 style="color:var(--danger)">Overdue / missed</h2></div>
+        <div id="dueOverdue"></div>
+      </section>
+    </section>
+
+    <!-- ---------- CALENDAR ---------- -->
+    <section id="tab-calendar" class="tab-content hidden">
+      <section class="panel">
+        <div class="cal-head">
+          <h2 id="calMonthLabel" style="font-size:18px;color:var(--moss-deep)"></h2>
+          <div class="cal-nav">
+            <button id="calPrev">‹</button>
+            <button id="calToday" style="width:auto;padding:0 10px;font-size:12px;font-weight:600;">Today</button>
+            <button id="calNext">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </section>
+    </section>
+
+    <!-- ---------- SUBSCRIBERS ---------- -->
+    <section id="tab-subscribers" class="tab-content hidden">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>All subscribers</h2>
+          <input id="subSearch" placeholder="Search name or product…" style="padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;min-width:220px;">
+        </div>
+        <div style="overflow-x:auto;">
+        <table id="subTable">
+          <thead>
+            <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Next delivery</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="subTableBody"></tbody>
+        </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- ---------- ADD SUBSCRIBER ---------- -->
+    <section id="tab-add" class="tab-content hidden">
+      <section class="panel">
+        <div class="panel-head"><h2>Add a subscriber</h2></div>
+        <form id="addForm">
+          <div class="form-grid">
+            <div class="field">
+              <label>Customer name</label>
+              <input type="text" id="f_name" required placeholder="e.g. Priya Menon">
+            </div>
+            <div class="field">
+              <label>Phone</label>
+              <input type="text" id="f_phone" placeholder="e.g. 98450 12345">
+            </div>
+            <div class="field">
+              <label>Delivery address</label>
+              <input type="text" id="f_address" placeholder="Area / landmark">
+            </div>
+            <div class="field">
+              <label>Product</label>
+              <select id="f_product">
+                <option>Floral Harmony</option>
+                <option>Essence of the Earth</option>
+                <option>Chrysanthemum Fantasy</option>
+                <option>Chrysanthemum Fantasy Mini</option>
+                <option>Niranthara Tuberose</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Cadence</label>
+              <select id="f_cadence">
+                <option value="7">Weekly</option>
+                <option value="14">Biweekly</option>
+                <option value="30">Monthly</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Plan length</label>
+              <select id="f_duration">
+                <option value="1">1 month</option>
+                <option value="3">3 months</option>
+                <option value="6">6 months</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Start date</label>
+              <input type="date" id="f_start" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save subscriber &amp; generate deliveries</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ===================== FIREBASE ===================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* =========================================================
+   FIREBASE CONFIG
+   Use the SAME Firebase project as hanabee-inventory so
+   Google auth + hosting stay consistent. Paste the config
+   object below (Firebase console → Project settings).
+========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyDFPeDavdAoUPA9N0plF_joEB4JN_p9tgY",
+  authDomain: "hanabee-subscriptions.firebaseapp.com",
+  projectId: "hanabee-subscriptions",
+  storageBucket: "hanabee-subscriptions.firebasestorage.app",
+  messagingSenderId: "844862009370",
+  appId: "1:844862009370:web:5eb6ea538710078dc261a3"
+};
+
+const ALLOWED_EMAILS = ["hello@hanabee.in", "hello.hanabee@gmail.com"];
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const SUBSCRIBERS = "hb_subscribers";
+const DELIVERIES = "hb_deliveries";
+
+/* ---------------- Auth ---------------- */
+const authGate = document.getElementById('authGate');
+const appEl = document.getElementById('app');
+const authError = document.getElementById('authError');
+
+document.getElementById('googleSignIn').addEventListener('click', () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  authError.classList.add('hidden');
+  auth.signInWithPopup(provider).catch(err => {
+    authError.textContent = err.message;
+    authError.classList.remove('hidden');
+  });
+});
+
+document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
+
+auth.onAuthStateChanged(user => {
+  if (user && ALLOWED_EMAILS.includes(user.email)) {
+    authGate.classList.add('hidden');
+    appEl.classList.remove('hidden');
+    document.getElementById('userChip').textContent = user.email;
+    initApp();
+  } else if (user) {
+    authError.textContent = "This account isn't authorized for Hanabee tools.";
+    authError.classList.remove('hidden');
+    auth.signOut();
+  } else {
+    authGate.classList.remove('hidden');
+    appEl.classList.add('hidden');
+  }
+});
+
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    if (btn.dataset.tab === 'calendar') renderCalendar();
+  });
+});
+
+/* ---------------- State ---------------- */
+let subscribers = [];   // {id, name, phone, address, product, cadenceDays, durationMonths, startDate, status}
+let deliveries = [];    // {id, subscriberId, subscriberName, product, cadenceDays, dueDate, status}
+let calCursor = new Date();
+let appInited = false;
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function fmtDate(d){
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function daysBetween(a,b){ return Math.round((startOfDay(b) - startOfDay(a)) / 86400000); }
+function relLabel(dueDate){
+  const diff = daysBetween(new Date(), dueDate);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return '1 day overdue';
+  if (diff < 0) return Math.abs(diff) + ' days overdue';
+  return 'in ' + diff + ' days';
+}
+
+/* ---------------- Data load ---------------- */
+function initApp(){
+  if (appInited) return;
+  appInited = true;
+  db.collection(SUBSCRIBERS).onSnapshot(snap => {
+    subscribers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSubscribers();
+    renderDashboard();
+  });
+  db.collection(DELIVERIES).orderBy('dueDate').onSnapshot(snap => {
+    deliveries = snap.docs.map(d => ({ id: d.id, ...d.data(), dueDate: new Date(d.data().dueDate) }));
+    renderDashboard();
+    renderSubscribers();
+    if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
+  });
+}
+
+/* ---------------- Add subscriber + generate deliveries ---------------- */
+document.getElementById('addForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('f_name').value.trim();
+  const phone = document.getElementById('f_phone').value.trim();
+  const address = document.getElementById('f_address').value.trim();
+  const product = document.getElementById('f_product').value;
+  const cadenceDays = parseInt(document.getElementById('f_cadence').value, 10);
+  const durationMonths = parseInt(document.getElementById('f_duration').value, 10);
+  const startDateStr = document.getElementById('f_start').value;
+  if (!name || !startDateStr) return;
+
+  const startDate = new Date(startDateStr + 'T00:00:00');
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + durationMonths);
+
+  const subRef = await db.collection(SUBSCRIBERS).add({
+    name, phone, address, product, cadenceDays, durationMonths,
+    startDate: isoDate(startDate), status: 'active',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // Generate delivery occurrences
+  const batch = db.batch();
+  let cursor = new Date(startDate);
+  let count = 0;
+  while (cursor < endDate) {
+    const ref = db.collection(DELIVERIES).doc();
+    batch.set(ref, {
+      subscriberId: subRef.id,
+      subscriberName: name,
+      product, cadenceDays,
+      dueDate: isoDate(cursor),
+      status: 'pending'
+    });
+    cursor = addDays(cursor, cadenceDays);
+    count++;
+  }
+  await batch.commit();
+
+  toast(`Saved ${name} — ${count} deliveries scheduled`);
+  e.target.reset();
+  document.querySelector('.tab-btn[data-tab="dashboard"]').click();
+});
+
+/* ---------------- Mark delivery status ---------------- */
+async function cycleStatus(delivery){
+  const order = ['pending', 'delivered', 'missed'];
+  const next = order[(order.indexOf(delivery.status) + 1) % order.length];
+  await db.collection(DELIVERIES).doc(delivery.id).update({ status: next });
+}
+
+/* ---------------- Render: delivery row ---------------- */
+function deliveryRow(d){
+  const row = document.createElement('div');
+  row.className = 'd-row';
+  const check = document.createElement('div');
+  check.className = 'd-check' + (d.status === 'delivered' ? ' done' : d.status === 'missed' ? ' missed' : '');
+  check.textContent = d.status === 'delivered' ? '✓' : d.status === 'missed' ? '✕' : '';
+  check.addEventListener('click', () => cycleStatus(d));
+
+  const main = document.createElement('div');
+  main.className = 'd-main';
+  const cadenceLabel = d.cadenceDays === 7 ? 'weekly' : d.cadenceDays === 14 ? 'biweekly' : 'monthly';
+  main.innerHTML = `<div class="d-name">${d.subscriberName}</div>
+    <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span></div>`;
+
+  const dateEl = document.createElement('div');
+  dateEl.className = 'd-date';
+  dateEl.innerHTML = `${fmtDate(d.dueDate)}<span class="rel">${relLabel(d.dueDate)}</span>`;
+
+  row.appendChild(check);
+  row.appendChild(main);
+  row.appendChild(dateEl);
+  return row;
+}
+
+/* ---------------- Dashboard ---------------- */
+function renderDashboard(){
+  const today = startOfDay(new Date());
+  const weekEnd = addDays(today, 7);
+
+  const activeSubIds = new Set(subscribers.filter(s => s.status === 'active').map(s => s.id));
+  const relevant = deliveries.filter(d => activeSubIds.has(d.subscriberId));
+
+  const dueTodayList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) === 0);
+  const dueWeekList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) > 0 && d.dueDate < weekEnd)
+    .sort((a,b) => a.dueDate - b.dueDate);
+  const overdueList = relevant.filter(d => d.status === 'missed' || (d.status === 'pending' && d.dueDate < today))
+    .sort((a,b) => a.dueDate - b.dueDate);
+
+  const statRow = document.getElementById('statRow');
+  statRow.innerHTML = '';
+  const stats = [
+    { label: 'Active subscribers', num: subscribers.filter(s=>s.status==='active').length, cls:'' },
+    { label: 'Due today', num: dueTodayList.length, cls:'' },
+    { label: 'Due this week', num: dueWeekList.length, cls:'warn' },
+    { label: 'Overdue / missed', num: overdueList.length, cls:'danger' },
+  ];
+  stats.forEach(s => {
+    const c = document.createElement('div');
+    c.className = 'stat-card ' + s.cls;
+    c.innerHTML = `<div class="num">${s.num}</div><div class="label">${s.label}</div>`;
+    statRow.appendChild(c);
+  });
+
+  fillList('dueToday', dueTodayList, 'Nothing due today. 🌿');
+  fillList('dueWeek', dueWeekList, 'No deliveries scheduled in the next 7 days.');
+  fillList('dueOverdue', overdueList, 'Nothing overdue — all caught up.');
+}
+
+function fillList(elId, list, emptyMsg){
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  if (!list.length){
+    el.innerHTML = `<div class="empty">${emptyMsg}</div>`;
+    return;
+  }
+  list.forEach(d => el.appendChild(deliveryRow(d)));
+}
+
+/* ---------------- Subscribers table ---------------- */
+function nextDeliveryFor(subId){
+  const today = startOfDay(new Date());
+  const upcoming = deliveries
+    .filter(d => d.subscriberId === subId && d.status === 'pending' && d.dueDate >= today)
+    .sort((a,b) => a.dueDate - b.dueDate);
+  return upcoming[0] || null;
+}
+
+function renderSubscribers(){
+  const body = document.getElementById('subTableBody');
+  const search = (document.getElementById('subSearch').value || '').toLowerCase();
+  body.innerHTML = '';
+  const filtered = subscribers
+    .filter(s => (s.name + ' ' + s.product).toLowerCase().includes(search))
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  if (!filtered.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(s => {
+    const nd = nextDeliveryFor(s.id);
+    const cadenceLabel = s.cadenceDays === 7 ? 'Weekly' : s.cadenceDays === 14 ? 'Biweekly' : 'Monthly';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${s.name}</strong>${s.phone ? `<div class="d-sub mono">${s.phone}</div>` : ''}</td>
+      <td>${s.product}</td>
+      <td>${cadenceLabel}</td>
+      <td>${nd ? fmtDate(nd.dueDate) + ' · ' + relLabel(nd.dueDate) : '<span class="d-sub">—</span>'}</td>
+      <td><span class="status-pill ${s.status}">${s.status}</span></td>
+      <td></td>
+    `;
+    const actionsTd = tr.lastElementChild;
+    if (s.status === 'active'){
+      const pauseBtn = document.createElement('button');
+      pauseBtn.className = 'link-btn'; pauseBtn.textContent = 'Pause';
+      pauseBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'paused' });
+      actionsTd.appendChild(pauseBtn);
+    } else if (s.status === 'paused'){
+      const resumeBtn = document.createElement('button');
+      resumeBtn.className = 'link-btn'; resumeBtn.textContent = 'Resume';
+      resumeBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'active' });
+      actionsTd.appendChild(resumeBtn);
+      actionsTd.appendChild(document.createTextNode(' · '));
+    }
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'link-btn danger'; cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = () => {
+      if (confirm(`Cancel ${s.name}'s subscription? Remaining pending deliveries will be removed.`)){
+        db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'cancelled' });
+        deliveries.filter(d => d.subscriberId === s.id && d.status === 'pending')
+          .forEach(d => db.collection(DELIVERIES).doc(d.id).delete());
+      }
+    };
+    if (s.status !== 'cancelled') actionsTd.appendChild(cancelBtn);
+    body.appendChild(tr);
+  });
+}
+document.getElementById('subSearch').addEventListener('input', renderSubscribers);
+
+/* ---------------- Calendar ---------------- */
+document.getElementById('calPrev').addEventListener('click', () => { calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', () => { calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); });
+document.getElementById('calToday').addEventListener('click', () => { calCursor = new Date(); renderCalendar(); });
+
+function renderCalendar(){
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  document.getElementById('calMonthLabel').textContent =
+    calCursor.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-dow'; el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const year = calCursor.getFullYear(), month = calCursor.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startOffset = firstDay.getDay();
+  const gridStart = addDays(firstDay, -startOffset);
+  const today = startOfDay(new Date());
+
+  const byDate = {};
+  deliveries.forEach(d => {
+    const key = isoDate(startOfDay(d.dueDate));
+    (byDate[key] = byDate[key] || []).push(d);
+  });
+
+  for (let i = 0; i < 42; i++){
+    const cellDate = addDays(gridStart, i);
+    const key = isoDate(cellDate);
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    if (cellDate.getMonth() !== month) cell.classList.add('other-month');
+    if (isoDate(cellDate) === isoDate(today)) cell.classList.add('is-today');
+
+    const num = document.createElement('div');
+    num.className = 'cal-daynum';
+    num.textContent = cellDate.getDate();
+    cell.appendChild(num);
+
+    const items = (byDate[key] || []).slice().sort((a,b)=>a.subscriberName.localeCompare(b.subscriberName));
+    items.slice(0,3).forEach(d => {
+      const pill = document.createElement('div');
+      pill.className = 'cal-pill' + (d.status === 'missed' ? ' missed' : d.status === 'delivered' ? ' delivered' : '');
+      pill.textContent = d.subscriberName;
+      pill.title = d.product;
+      pill.addEventListener('click', () => openDayModal(cellDate, items));
+      cell.appendChild(pill);
+    });
+    if (items.length > 3){
+      const more = document.createElement('div');
+      more.className = 'cal-more';
+      more.textContent = `+${items.length - 3} more`;
+      more.addEventListener('click', () => openDayModal(cellDate, items));
+      cell.appendChild(more);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function openDayModal(date, items){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.innerHTML = `<h3>${date.toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long'})}</h3>`;
+  if (!items.length){
+    modal.innerHTML += `<div class="empty">No deliveries this day.</div>`;
+  } else {
+    items.forEach(d => modal.appendChild(deliveryRow(d)));
+  }
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn btn-primary';
+  closeBtn.style.marginTop = '14px';
+  closeBtn.textContent = 'Close';
+  closeBtn.onclick = () => backdrop.remove();
+  modal.appendChild(closeBtn);
+
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+}
+
+// default the start-date field to today
+document.getElementById('f_start').value = new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>
