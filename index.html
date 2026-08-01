@@ -151,6 +151,32 @@
   .link-btn:hover{text-decoration:underline;}
   .link-btn.danger{color:var(--danger);}
 
+  .actions-cell{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+  .act-btn{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:100px;border:1px solid transparent;cursor:pointer;
+    transition:transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
+    white-space:nowrap;
+  }
+  .act-btn:active{transform:scale(0.96);}
+  .act-btn svg{width:12px;height:12px;flex-shrink:0;}
+
+  .act-btn.edit{background:#fff;color:var(--moss-deep);border-color:var(--line);}
+  .act-btn.edit:hover{border-color:var(--leaf);background:#f4f7f1;box-shadow:0 2px 6px -2px rgba(92,122,82,0.35);}
+
+  .act-btn.renew{background:var(--moss-deep);color:#fff;}
+  .act-btn.renew:hover{background:var(--moss);box-shadow:0 3px 10px -3px rgba(32,40,28,0.5);}
+
+  .act-btn.pause{background:#fff;color:var(--amber);border-color:#eed9b3;}
+  .act-btn.pause:hover{background:#fbf3e2;box-shadow:0 2px 6px -2px rgba(201,131,37,0.3);}
+
+  .act-btn.resume{background:var(--leaf);color:#fff;}
+  .act-btn.resume:hover{background:#4d6944;box-shadow:0 3px 10px -3px rgba(92,122,82,0.5);}
+
+  .act-btn.cancel{background:#fff;color:var(--danger);border-color:#eccbc0;}
+  .act-btn.cancel:hover{background:#fbeeea;box-shadow:0 2px 6px -2px rgba(179,73,47,0.3);}
+
   /* Form */
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
   .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
@@ -597,32 +623,48 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     const existing = subscribers.find(s => s.id === subId);
     const scheduleChanged = !existing || existing.startDate !== isoDate(startDate)
       || existing.cadenceDays !== cadenceDays || existing.durationMonths !== durationMonths;
+    const wasInactiveStatus = existing && (existing.status === 'completed' || existing.status === 'cancelled');
 
     await db.collection(SUBSCRIBERS).doc(subId).update({
       name, phone, address, product, cadenceDays, durationMonths,
       startDate: isoDate(startDate), timeSlot: timeSlot || ''
     });
 
+    let deliveryCount;
     if (scheduleChanged){
       // remove unresolved (pending) deliveries and regenerate the schedule fresh
       const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
       const delBatch = db.batch();
       pending.forEach(d => delBatch.delete(db.collection(DELIVERIES).doc(d.id)));
       await delBatch.commit();
-      const count = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
-      toast(`Updated ${name} — schedule regenerated (${count} deliveries)`);
+      deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
     } else {
       // just keep names/product in sync on pending deliveries
       const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
       const syncBatch = db.batch();
       pending.forEach(d => syncBatch.update(db.collection(DELIVERIES).doc(d.id), { subscriberName: name, product, timeSlot: timeSlot || '' }));
       if (pending.length) await syncBatch.commit();
-      toast(`Updated ${name}`);
+      deliveryCount = pending.length;
+      // a completed/cancelled subscriber with a still-future end date but no pending deliveries
+      // (e.g. plan wasn't actually finished when marked complete) gets a fresh schedule too
+      if (wasInactiveStatus && deliveryCount === 0 && endDate > new Date()){
+        deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+      }
     }
+
+    // if there's now a live pending schedule but status is stuck completed/cancelled, reactivate
+    if (wasInactiveStatus && deliveryCount > 0){
+      await db.collection(SUBSCRIBERS).doc(subId).update({ status: 'active' });
+      toast(`Updated ${name} — reactivated with ${deliveryCount} upcoming deliveries`);
+    } else {
+      toast(scheduleChanged ? `Updated ${name} — schedule regenerated (${deliveryCount} deliveries)` : `Updated ${name}`);
+    }
+
     exitEditMode();
     document.querySelector('.tab-btn[data-tab="subscribers"]').click();
     return;
   }
+
 
   // ----- ADD MODE -----
   const subRef = await db.collection(SUBSCRIBERS).add({
@@ -730,10 +772,8 @@ function renewRow(sub, label){
   main.innerHTML = `<div class="d-name">${sub.name}</div>
     <div class="d-sub">${sub.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span> · ${label}</div>`;
   const renewBtn = document.createElement('button');
-  renewBtn.className = 'btn btn-primary';
-  renewBtn.style.fontSize = '12.5px';
-  renewBtn.style.padding = '8px 14px';
-  renewBtn.textContent = 'Renew';
+  renewBtn.className = 'act-btn renew';
+  renewBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>Renew';
   renewBtn.onclick = () => openRenewForm(sub);
   row.appendChild(main);
   row.appendChild(renewBtn);
@@ -857,39 +897,47 @@ function renderSubscribers(){
       <td></td>
     `;
     const actionsTd = tr.lastElementChild;
+    actionsTd.className = 'actions-cell';
+
     const editBtn = document.createElement('button');
-    editBtn.className = 'link-btn'; editBtn.textContent = 'Edit';
+    editBtn.className = 'act-btn edit';
+    editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Edit';
     editBtn.onclick = () => openEditForm(s);
     actionsTd.appendChild(editBtn);
-    actionsTd.appendChild(document.createTextNode(' · '));
+
     if (s.status === 'active'){
       const pauseBtn = document.createElement('button');
-      pauseBtn.className = 'link-btn'; pauseBtn.textContent = 'Pause';
+      pauseBtn.className = 'act-btn pause';
+      pauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Pause';
       pauseBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'paused' });
       actionsTd.appendChild(pauseBtn);
     } else if (s.status === 'paused'){
       const resumeBtn = document.createElement('button');
-      resumeBtn.className = 'link-btn'; resumeBtn.textContent = 'Resume';
+      resumeBtn.className = 'act-btn resume';
+      resumeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z"/></svg>Resume';
       resumeBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'active' });
       actionsTd.appendChild(resumeBtn);
-      actionsTd.appendChild(document.createTextNode(' · '));
     } else if (s.status === 'completed'){
       const renewBtn = document.createElement('button');
-      renewBtn.className = 'link-btn'; renewBtn.textContent = 'Renew';
+      renewBtn.className = 'act-btn renew';
+      renewBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>Renew';
       renewBtn.onclick = () => openRenewForm(s);
       actionsTd.appendChild(renewBtn);
-      actionsTd.appendChild(document.createTextNode(' · '));
     }
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'link-btn danger'; cancelBtn.textContent = 'Cancel';
-    cancelBtn.onclick = () => {
-      if (confirm(`Cancel ${s.name}'s subscription? Remaining pending deliveries will be removed.`)){
-        db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'cancelled' });
-        deliveries.filter(d => d.subscriberId === s.id && d.status === 'pending')
-          .forEach(d => db.collection(DELIVERIES).doc(d.id).delete());
-      }
-    };
-    if (s.status !== 'cancelled') actionsTd.appendChild(cancelBtn);
+
+    if (s.status !== 'cancelled'){
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'act-btn cancel';
+      cancelBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Cancel';
+      cancelBtn.onclick = () => {
+        if (confirm(`Cancel ${s.name}'s subscription? Remaining pending deliveries will be removed.`)){
+          db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'cancelled' });
+          deliveries.filter(d => d.subscriberId === s.id && d.status === 'pending')
+            .forEach(d => db.collection(DELIVERIES).doc(d.id).delete());
+        }
+      };
+      actionsTd.appendChild(cancelBtn);
+    }
     body.appendChild(tr);
   });
 }
