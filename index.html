@@ -385,6 +385,12 @@
               <input type="text" id="f_timeslot_custom" placeholder="e.g. 6:30 PM" style="margin-top:8px;display:none;">
             </div>
           </div>
+          <div id="clearHistoryRow" style="display:none;margin-top:16px;padding:12px 14px;background:var(--ivory);border:1px solid var(--line);border-radius:10px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-soft);cursor:pointer;text-transform:none;font-weight:500;">
+              <input type="checkbox" id="f_clearHistory" style="margin-top:2px;">
+              <span>Also clear this subscriber's existing delivery history (removes all past delivered/missed records too, not just upcoming ones) — use this if earlier deliveries were logged on wrong dates.</span>
+            </label>
+          </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" id="addFormSubmitBtn">Save subscriber &amp; generate deliveries</button>
             <button type="button" class="btn btn-ghost" id="addFormCancelEdit" style="display:none;border-color:var(--line);color:var(--ink-soft);">Cancel edit</button>
@@ -621,7 +627,8 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     // ----- EDIT MODE -----
     const subId = editingSubscriberId;
     const existing = subscribers.find(s => s.id === subId);
-    const scheduleChanged = !existing || existing.startDate !== isoDate(startDate)
+    const clearHistory = document.getElementById('f_clearHistory').checked;
+    const scheduleChanged = clearHistory || !existing || existing.startDate !== isoDate(startDate)
       || existing.cadenceDays !== cadenceDays || existing.durationMonths !== durationMonths;
     const wasInactiveStatus = existing && (existing.status === 'completed' || existing.status === 'cancelled');
 
@@ -629,6 +636,20 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       name, phone, address, product, cadenceDays, durationMonths,
       startDate: isoDate(startDate), timeSlot: timeSlot || ''
     });
+
+    if (clearHistory){
+      // wipe every delivery record for this subscriber (pending, delivered, missed) — clean slate
+      const all = deliveries.filter(d => d.subscriberId === subId);
+      const wipeBatch = db.batch();
+      all.forEach(d => wipeBatch.delete(db.collection(DELIVERIES).doc(d.id)));
+      if (all.length) await wipeBatch.commit();
+      const deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+      if (wasInactiveStatus) await db.collection(SUBSCRIBERS).doc(subId).update({ status: 'active' });
+      toast(`Cleared history for ${name} — fresh schedule of ${deliveryCount} deliveries`);
+      exitEditMode();
+      document.querySelector('.tab-btn[data-tab="subscribers"]').click();
+      return;
+    }
 
     let deliveryCount;
     if (scheduleChanged){
@@ -684,6 +705,8 @@ function exitEditMode(){
   editingSubscriberId = null;
   document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
   document.getElementById('addFormCancelEdit').style.display = 'none';
+  document.getElementById('clearHistoryRow').style.display = 'none';
+  document.getElementById('f_clearHistory').checked = false;
   document.getElementById('addForm').reset();
   document.getElementById('f_start').value = isoDate(new Date());
 }
@@ -715,6 +738,8 @@ function openEditForm(sub){
   }
   document.getElementById('addFormSubmitBtn').textContent = 'Save changes';
   document.getElementById('addFormCancelEdit').style.display = 'inline-block';
+  document.getElementById('clearHistoryRow').style.display = 'block';
+  document.getElementById('f_clearHistory').checked = false;
   toast(`Editing ${sub.name}`);
 }
 
@@ -792,6 +817,7 @@ function openRenewForm(sub){
   document.getElementById('f_start').value = isoDate(new Date());
   document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
   document.getElementById('addFormCancelEdit').style.display = 'none';
+  document.getElementById('clearHistoryRow').style.display = 'none';
   toast(`Renewing ${sub.name} — review & save`);
 }
 
