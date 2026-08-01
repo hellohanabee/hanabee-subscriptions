@@ -323,14 +323,8 @@
             </div>
             <div class="field">
               <label>Product</label>
-              <select id="f_product">
-                <option>Floral Harmony</option>
-                <option>Essence of the Earth</option>
-                <option>Chrysanthemum Fantasy</option>
-                <option>Chrysanthemum Fantasy Mini</option>
-                <option>Niranthara Tuberose</option>
-                <option>Other</option>
-              </select>
+              <select id="f_product"></select>
+              <button type="button" class="link-btn" id="addProductBtn" style="margin-top:6px;">+ Add new product</button>
             </div>
             <div class="field">
               <label>Cadence</label>
@@ -352,9 +346,22 @@
               <label>Start date</label>
               <input type="date" id="f_start" required>
             </div>
+            <div class="field">
+              <label>Delivery time slot</label>
+              <select id="f_timeslot">
+                <option value="">No preference</option>
+                <option>9:00 AM – 12:00 PM</option>
+                <option>12:00 PM – 3:00 PM</option>
+                <option>3:00 PM – 6:00 PM</option>
+                <option>6:00 PM – 9:00 PM</option>
+                <option value="__custom">Custom…</option>
+              </select>
+              <input type="text" id="f_timeslot_custom" placeholder="e.g. 6:30 PM" style="margin-top:8px;display:none;">
+            </div>
           </div>
           <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Save subscriber &amp; generate deliveries</button>
+            <button type="submit" class="btn btn-primary" id="addFormSubmitBtn">Save subscriber &amp; generate deliveries</button>
+            <button type="button" class="btn btn-ghost" id="addFormCancelEdit" style="display:none;border-color:var(--line);color:var(--ink-soft);">Cancel edit</button>
           </div>
         </form>
       </section>
@@ -393,6 +400,8 @@ const db = firebase.firestore();
 
 const SUBSCRIBERS = "hb_subscribers";
 const DELIVERIES = "hb_deliveries";
+const PRODUCTS = "hb_products";
+const DEFAULT_PRODUCTS = ["Floral Harmony", "Essence of the Earth", "Chrysanthemum Fantasy", "Chrysanthemum Fantasy Mini", "Niranthara Tuberose"];
 
 /* ---------------- Auth ---------------- */
 const authGate = document.getElementById('authGate');
@@ -434,14 +443,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
     if (btn.dataset.tab === 'calendar') renderCalendar();
+    if (btn.dataset.tab === 'add'){
+      document.querySelector('#tab-add h2').textContent = editingSubscriberId ? 'Edit subscriber' : 'Add a subscriber';
+    }
   });
 });
 
 /* ---------------- State ---------------- */
-let subscribers = [];   // {id, name, phone, address, product, cadenceDays, durationMonths, startDate, status}
-let deliveries = [];    // {id, subscriberId, subscriberName, product, cadenceDays, dueDate, status}
+let subscribers = [];   // {id, name, phone, address, product, cadenceDays, durationMonths, startDate, status, timeSlot}
+let deliveries = [];    // {id, subscriberId, subscriberName, product, cadenceDays, dueDate, status, timeSlot}
+let products = [];      // string[]
 let calCursor = new Date();
 let appInited = false;
+let editingSubscriberId = null;
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -453,7 +467,12 @@ function toast(msg){
 function fmtDate(d){
   return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
 }
-function isoDate(d){ return d.toISOString().slice(0,10); }
+function isoDate(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 function daysBetween(a,b){ return Math.round((startOfDay(b) - startOfDay(a)) / 86400000); }
@@ -482,9 +501,80 @@ function initApp(){
     if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     subscribers.filter(s => s.status === 'active').forEach(s => checkAndCompleteSubscriber(s.id));
   });
+  db.collection(PRODUCTS).orderBy('name').onSnapshot(async snap => {
+    if (snap.empty){
+      const batch = db.batch();
+      DEFAULT_PRODUCTS.forEach(name => batch.set(db.collection(PRODUCTS).doc(), { name }));
+      await batch.commit();
+      return; // onSnapshot will fire again with the seeded data
+    }
+    products = snap.docs.map(d => d.data().name);
+    populateProductSelect();
+  });
 }
 
-/* ---------------- Add subscriber + generate deliveries ---------------- */
+function populateProductSelect(){
+  const sel = document.getElementById('f_product');
+  const current = sel.value;
+  sel.innerHTML = '';
+  products.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    sel.appendChild(opt);
+  });
+  const otherOpt = document.createElement('option');
+  otherOpt.value = 'Other'; otherOpt.textContent = 'Other';
+  sel.appendChild(otherOpt);
+  if (current && products.includes(current)) sel.value = current;
+}
+
+document.getElementById('addProductBtn').addEventListener('click', async () => {
+  const name = prompt('New subscription product name:');
+  if (!name || !name.trim()) return;
+  const trimmed = name.trim();
+  if (products.includes(trimmed)){
+    toast(`"${trimmed}" already exists`);
+    document.getElementById('f_product').value = trimmed;
+    return;
+  }
+  await db.collection(PRODUCTS).add({ name: trimmed });
+  toast(`Added product "${trimmed}"`);
+  setTimeout(() => { document.getElementById('f_product').value = trimmed; }, 300);
+});
+
+document.getElementById('f_timeslot').addEventListener('change', (e) => {
+  const customInput = document.getElementById('f_timeslot_custom');
+  customInput.style.display = e.target.value === '__custom' ? 'block' : 'none';
+});
+
+/* ---------------- Add / Edit subscriber + generate deliveries ---------------- */
+function getTimeSlotValue(){
+  const sel = document.getElementById('f_timeslot').value;
+  if (sel === '__custom') return document.getElementById('f_timeslot_custom').value.trim();
+  return sel;
+}
+
+async function generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot){
+  const batch = db.batch();
+  let cursor = new Date(startDate);
+  let count = 0;
+  while (cursor < endDate) {
+    const ref = db.collection(DELIVERIES).doc();
+    batch.set(ref, {
+      subscriberId: subId,
+      subscriberName: name,
+      product, cadenceDays,
+      dueDate: isoDate(cursor),
+      timeSlot: timeSlot || '',
+      status: 'pending'
+    });
+    cursor = addDays(cursor, cadenceDays);
+    count++;
+  }
+  await batch.commit();
+  return count;
+}
+
 document.getElementById('addForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = document.getElementById('f_name').value.trim();
@@ -494,40 +584,97 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const cadenceDays = parseInt(document.getElementById('f_cadence').value, 10);
   const durationMonths = parseInt(document.getElementById('f_duration').value, 10);
   const startDateStr = document.getElementById('f_start').value;
+  const timeSlot = getTimeSlotValue();
   if (!name || !startDateStr) return;
 
   const startDate = new Date(startDateStr + 'T00:00:00');
   const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + durationMonths);
 
+  if (editingSubscriberId){
+    // ----- EDIT MODE -----
+    const subId = editingSubscriberId;
+    const existing = subscribers.find(s => s.id === subId);
+    const scheduleChanged = !existing || existing.startDate !== isoDate(startDate)
+      || existing.cadenceDays !== cadenceDays || existing.durationMonths !== durationMonths;
+
+    await db.collection(SUBSCRIBERS).doc(subId).update({
+      name, phone, address, product, cadenceDays, durationMonths,
+      startDate: isoDate(startDate), timeSlot: timeSlot || ''
+    });
+
+    if (scheduleChanged){
+      // remove unresolved (pending) deliveries and regenerate the schedule fresh
+      const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
+      const delBatch = db.batch();
+      pending.forEach(d => delBatch.delete(db.collection(DELIVERIES).doc(d.id)));
+      await delBatch.commit();
+      const count = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+      toast(`Updated ${name} — schedule regenerated (${count} deliveries)`);
+    } else {
+      // just keep names/product in sync on pending deliveries
+      const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
+      const syncBatch = db.batch();
+      pending.forEach(d => syncBatch.update(db.collection(DELIVERIES).doc(d.id), { subscriberName: name, product, timeSlot: timeSlot || '' }));
+      if (pending.length) await syncBatch.commit();
+      toast(`Updated ${name}`);
+    }
+    exitEditMode();
+    document.querySelector('.tab-btn[data-tab="subscribers"]').click();
+    return;
+  }
+
+  // ----- ADD MODE -----
   const subRef = await db.collection(SUBSCRIBERS).add({
     name, phone, address, product, cadenceDays, durationMonths,
-    startDate: isoDate(startDate), status: 'active',
+    startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-
-  // Generate delivery occurrences
-  const batch = db.batch();
-  let cursor = new Date(startDate);
-  let count = 0;
-  while (cursor < endDate) {
-    const ref = db.collection(DELIVERIES).doc();
-    batch.set(ref, {
-      subscriberId: subRef.id,
-      subscriberName: name,
-      product, cadenceDays,
-      dueDate: isoDate(cursor),
-      status: 'pending'
-    });
-    cursor = addDays(cursor, cadenceDays);
-    count++;
-  }
-  await batch.commit();
+  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, endDate, timeSlot);
 
   toast(`Saved ${name} — ${count} deliveries scheduled`);
   e.target.reset();
+  document.getElementById('f_start').value = isoDate(new Date());
   document.querySelector('.tab-btn[data-tab="dashboard"]').click();
 });
+
+function exitEditMode(){
+  editingSubscriberId = null;
+  document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
+  document.getElementById('addFormCancelEdit').style.display = 'none';
+  document.getElementById('addForm').reset();
+  document.getElementById('f_start').value = isoDate(new Date());
+}
+document.getElementById('addFormCancelEdit').addEventListener('click', exitEditMode);
+
+function openEditForm(sub){
+  editingSubscriberId = sub.id;
+  document.querySelector('.tab-btn[data-tab="add"]').click();
+  document.querySelector('#tab-add h2').textContent = 'Edit subscriber';
+  document.getElementById('f_name').value = sub.name;
+  document.getElementById('f_phone').value = sub.phone || '';
+  document.getElementById('f_address').value = sub.address || '';
+  document.getElementById('f_product').value = sub.product;
+  document.getElementById('f_cadence').value = String(sub.cadenceDays);
+  document.getElementById('f_duration').value = String(sub.durationMonths);
+  document.getElementById('f_start').value = sub.startDate;
+  const slotSel = document.getElementById('f_timeslot');
+  const knownSlots = Array.from(slotSel.options).map(o => o.value);
+  if (sub.timeSlot && knownSlots.includes(sub.timeSlot)){
+    slotSel.value = sub.timeSlot;
+    document.getElementById('f_timeslot_custom').style.display = 'none';
+  } else if (sub.timeSlot){
+    slotSel.value = '__custom';
+    document.getElementById('f_timeslot_custom').style.display = 'block';
+    document.getElementById('f_timeslot_custom').value = sub.timeSlot;
+  } else {
+    slotSel.value = '';
+    document.getElementById('f_timeslot_custom').style.display = 'none';
+  }
+  document.getElementById('addFormSubmitBtn').textContent = 'Save changes';
+  document.getElementById('addFormCancelEdit').style.display = 'inline-block';
+  toast(`Editing ${sub.name}`);
+}
 
 /* ---------------- Mark delivery status ---------------- */
 async function cycleStatus(delivery){
@@ -536,6 +683,7 @@ async function cycleStatus(delivery){
   await db.collection(DELIVERIES).doc(delivery.id).update({ status: next });
   checkAndCompleteSubscriber(delivery.subscriberId);
 }
+
 
 async function checkAndCompleteSubscriber(subscriberId){
   const sub = subscribers.find(s => s.id === subscriberId);
@@ -561,7 +709,7 @@ function deliveryRow(d){
   main.className = 'd-main';
   const cadenceLabel = d.cadenceDays === 7 ? 'weekly' : d.cadenceDays === 14 ? 'biweekly' : 'monthly';
   main.innerHTML = `<div class="d-name">${d.subscriberName}</div>
-    <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span></div>`;
+    <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span>${d.timeSlot ? ' · ' + d.timeSlot : ''}</div>`;
 
   const dateEl = document.createElement('div');
   dateEl.className = 'd-date';
@@ -593,6 +741,7 @@ function renewRow(sub, label){
 }
 
 function openRenewForm(sub){
+  editingSubscriberId = null;
   document.querySelector('.tab-btn[data-tab="add"]').click();
   document.getElementById('f_name').value = sub.name;
   document.getElementById('f_phone').value = sub.phone || '';
@@ -600,7 +749,9 @@ function openRenewForm(sub){
   document.getElementById('f_product').value = sub.product;
   document.getElementById('f_cadence').value = String(sub.cadenceDays);
   document.getElementById('f_duration').value = String(sub.durationMonths);
-  document.getElementById('f_start').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f_start').value = isoDate(new Date());
+  document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
+  document.getElementById('addFormCancelEdit').style.display = 'none';
   toast(`Renewing ${sub.name} — review & save`);
 }
 
@@ -706,6 +857,11 @@ function renderSubscribers(){
       <td></td>
     `;
     const actionsTd = tr.lastElementChild;
+    const editBtn = document.createElement('button');
+    editBtn.className = 'link-btn'; editBtn.textContent = 'Edit';
+    editBtn.onclick = () => openEditForm(s);
+    actionsTd.appendChild(editBtn);
+    actionsTd.appendChild(document.createTextNode(' · '));
     if (s.status === 'active'){
       const pauseBtn = document.createElement('button');
       pauseBtn.className = 'link-btn'; pauseBtn.textContent = 'Pause';
@@ -826,7 +982,7 @@ function openDayModal(date, items){
 }
 
 // default the start-date field to today
-document.getElementById('f_start').value = new Date().toISOString().slice(0,10);
+document.getElementById('f_start').value = isoDate(new Date());
 </script>
 </body>
 </html>
