@@ -146,6 +146,7 @@
   .status-pill.active{background:#e4ecdd;color:var(--leaf);}
   .status-pill.paused{background:#fbe7c9;color:var(--amber);}
   .status-pill.cancelled{background:#eee;color:var(--ink-soft);}
+  .status-pill.completed{background:#e6dff0;color:#6b4fa0;}
   .link-btn{background:none;border:none;color:var(--moss);font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
   .link-btn:hover{text-decoration:underline;}
   .link-btn.danger{color:var(--danger);}
@@ -261,6 +262,11 @@
       <section class="panel">
         <div class="panel-head"><h2 style="color:var(--danger)">Overdue / missed</h2></div>
         <div id="dueOverdue"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2 style="color:var(--amber)">Ending soon / completed — renew?</h2></div>
+        <div id="dueEnding"></div>
       </section>
     </section>
 
@@ -474,6 +480,7 @@ function initApp(){
     renderDashboard();
     renderSubscribers();
     if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
+    subscribers.filter(s => s.status === 'active').forEach(s => checkAndCompleteSubscriber(s.id));
   });
 }
 
@@ -527,6 +534,18 @@ async function cycleStatus(delivery){
   const order = ['pending', 'delivered', 'missed'];
   const next = order[(order.indexOf(delivery.status) + 1) % order.length];
   await db.collection(DELIVERIES).doc(delivery.id).update({ status: next });
+  checkAndCompleteSubscriber(delivery.subscriberId);
+}
+
+async function checkAndCompleteSubscriber(subscriberId){
+  const sub = subscribers.find(s => s.id === subscriberId);
+  if (!sub || sub.status !== 'active') return;
+  const remainingPending = deliveries.some(d => d.subscriberId === subscriberId && d.status === 'pending');
+  if (!remainingPending){
+    // all occurrences resolved (delivered/missed) — plan has run its course
+    await db.collection(SUBSCRIBERS).doc(subscriberId).update({ status: 'completed' });
+    toast(`${sub.name}'s plan is complete — ready to renew`);
+  }
 }
 
 /* ---------------- Render: delivery row ---------------- */
@@ -552,6 +571,37 @@ function deliveryRow(d){
   row.appendChild(main);
   row.appendChild(dateEl);
   return row;
+}
+
+function renewRow(sub, label){
+  const row = document.createElement('div');
+  row.className = 'd-row';
+  const main = document.createElement('div');
+  main.className = 'd-main';
+  const cadenceLabel = sub.cadenceDays === 7 ? 'weekly' : sub.cadenceDays === 14 ? 'biweekly' : 'monthly';
+  main.innerHTML = `<div class="d-name">${sub.name}</div>
+    <div class="d-sub">${sub.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span> · ${label}</div>`;
+  const renewBtn = document.createElement('button');
+  renewBtn.className = 'btn btn-primary';
+  renewBtn.style.fontSize = '12.5px';
+  renewBtn.style.padding = '8px 14px';
+  renewBtn.textContent = 'Renew';
+  renewBtn.onclick = () => openRenewForm(sub);
+  row.appendChild(main);
+  row.appendChild(renewBtn);
+  return row;
+}
+
+function openRenewForm(sub){
+  document.querySelector('.tab-btn[data-tab="add"]').click();
+  document.getElementById('f_name').value = sub.name;
+  document.getElementById('f_phone').value = sub.phone || '';
+  document.getElementById('f_address').value = sub.address || '';
+  document.getElementById('f_product').value = sub.product;
+  document.getElementById('f_cadence').value = String(sub.cadenceDays);
+  document.getElementById('f_duration').value = String(sub.durationMonths);
+  document.getElementById('f_start').value = new Date().toISOString().slice(0,10);
+  toast(`Renewing ${sub.name} — review & save`);
 }
 
 /* ---------------- Dashboard ---------------- */
@@ -586,6 +636,29 @@ function renderDashboard(){
   fillList('dueToday', dueTodayList, 'Nothing due today. 🌿');
   fillList('dueWeek', dueWeekList, 'No deliveries scheduled in the next 7 days.');
   fillList('dueOverdue', overdueList, 'Nothing overdue — all caught up.');
+
+  // Ending soon (active, last delivery within 7 days) + already completed
+  const endingEl = document.getElementById('dueEnding');
+  endingEl.innerHTML = '';
+  const endingItems = [];
+  subscribers.forEach(s => {
+    if (s.status === 'completed'){
+      endingItems.push({ sub: s, label: 'Plan completed' });
+    } else if (s.status === 'active'){
+      const subDeliveries = deliveries.filter(d => d.subscriberId === s.id);
+      if (!subDeliveries.length) return;
+      const last = subDeliveries.reduce((a,b) => a.dueDate > b.dueDate ? a : b);
+      const diff = daysBetween(today, last.dueDate);
+      if (diff >= 0 && diff <= 7){
+        endingItems.push({ sub: s, label: `Last delivery ${relLabel(last.dueDate).toLowerCase()}` });
+      }
+    }
+  });
+  if (!endingItems.length){
+    endingEl.innerHTML = `<div class="empty">No plans ending soon.</div>`;
+  } else {
+    endingItems.forEach(({sub, label}) => endingEl.appendChild(renewRow(sub, label)));
+  }
 }
 
 function fillList(elId, list, emptyMsg){
@@ -643,6 +716,12 @@ function renderSubscribers(){
       resumeBtn.className = 'link-btn'; resumeBtn.textContent = 'Resume';
       resumeBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'active' });
       actionsTd.appendChild(resumeBtn);
+      actionsTd.appendChild(document.createTextNode(' · '));
+    } else if (s.status === 'completed'){
+      const renewBtn = document.createElement('button');
+      renewBtn.className = 'link-btn'; renewBtn.textContent = 'Renew';
+      renewBtn.onclick = () => openRenewForm(s);
+      actionsTd.appendChild(renewBtn);
       actionsTd.appendChild(document.createTextNode(' · '));
     }
     const cancelBtn = document.createElement('button');
