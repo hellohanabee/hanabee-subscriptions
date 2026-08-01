@@ -177,6 +177,9 @@
   .act-btn.cancel{background:#fff;color:var(--danger);border-color:#eccbc0;}
   .act-btn.cancel:hover{background:#fbeeea;box-shadow:0 2px 6px -2px rgba(179,73,47,0.3);}
 
+  .act-btn.delete{background:var(--danger);color:#fff;}
+  .act-btn.delete:hover{background:#8f3a24;box-shadow:0 3px 10px -3px rgba(179,73,47,0.55);}
+
   /* Form */
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
   .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
@@ -586,25 +589,35 @@ function getTimeSlotValue(){
   return sel;
 }
 
-async function generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot){
+function planDeliveryCount(cadenceDays, durationMonths){
+  if (cadenceDays === 7) return durationMonths * 4;   // weekly
+  if (cadenceDays === 14) return durationMonths * 2;  // biweekly
+  return durationMonths * 1;                          // monthly
+}
+
+function addMonths(d, n){
+  const x = new Date(d);
+  x.setMonth(x.getMonth() + n);
+  return x;
+}
+
+async function generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot){
+  const totalCount = planDeliveryCount(cadenceDays, durationMonths);
   const batch = db.batch();
-  let cursor = new Date(startDate);
-  let count = 0;
-  while (cursor < endDate) {
+  for (let i = 0; i < totalCount; i++){
+    const dueDate = cadenceDays === 30 ? addMonths(startDate, i) : addDays(startDate, i * cadenceDays);
     const ref = db.collection(DELIVERIES).doc();
     batch.set(ref, {
       subscriberId: subId,
       subscriberName: name,
       product, cadenceDays,
-      dueDate: isoDate(cursor),
+      dueDate: isoDate(dueDate),
       timeSlot: timeSlot || '',
       status: 'pending'
     });
-    cursor = addDays(cursor, cadenceDays);
-    count++;
   }
   await batch.commit();
-  return count;
+  return totalCount;
 }
 
 document.getElementById('addForm').addEventListener('submit', async (e) => {
@@ -643,7 +656,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       const wipeBatch = db.batch();
       all.forEach(d => wipeBatch.delete(db.collection(DELIVERIES).doc(d.id)));
       if (all.length) await wipeBatch.commit();
-      const deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+      const deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
       if (wasInactiveStatus) await db.collection(SUBSCRIBERS).doc(subId).update({ status: 'active' });
       toast(`Cleared history for ${name} — fresh schedule of ${deliveryCount} deliveries`);
       exitEditMode();
@@ -658,7 +671,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       const delBatch = db.batch();
       pending.forEach(d => delBatch.delete(db.collection(DELIVERIES).doc(d.id)));
       await delBatch.commit();
-      deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+      deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
     } else {
       // just keep names/product in sync on pending deliveries
       const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
@@ -669,7 +682,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       // a completed/cancelled subscriber with a still-future end date but no pending deliveries
       // (e.g. plan wasn't actually finished when marked complete) gets a fresh schedule too
       if (wasInactiveStatus && deliveryCount === 0 && endDate > new Date()){
-        deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, endDate, timeSlot);
+        deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
       }
     }
 
@@ -693,7 +706,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
     startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, endDate, timeSlot);
+  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot);
 
   toast(`Saved ${name} — ${count} deliveries scheduled`);
   e.target.reset();
@@ -964,10 +977,35 @@ function renderSubscribers(){
       };
       actionsTd.appendChild(cancelBtn);
     }
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'act-btn delete';
+    deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>Delete';
+    deleteBtn.onclick = () => confirmDeleteSubscriber(s);
+    actionsTd.appendChild(deleteBtn);
+
     body.appendChild(tr);
   });
 }
 document.getElementById('subSearch').addEventListener('input', renderSubscribers);
+
+async function confirmDeleteSubscriber(s){
+  const sure = confirm(
+    `Permanently delete ${s.name}?\n\nThis removes their subscriber record AND every delivery record (past and upcoming) tied to them. This cannot be undone.\n\nType OK to confirm.`
+  );
+  if (!sure) return;
+  const typed = prompt(`To confirm, type the subscriber's name exactly: ${s.name}`);
+  if (typed !== s.name){
+    toast('Name did not match — deletion cancelled');
+    return;
+  }
+  const relatedDeliveries = deliveries.filter(d => d.subscriberId === s.id);
+  const batch = db.batch();
+  relatedDeliveries.forEach(d => batch.delete(db.collection(DELIVERIES).doc(d.id)));
+  batch.delete(db.collection(SUBSCRIBERS).doc(s.id));
+  await batch.commit();
+  toast(`Deleted ${s.name} and ${relatedDeliveries.length} delivery records`);
+}
 
 /* ---------------- Calendar ---------------- */
 document.getElementById('calPrev').addEventListener('click', () => { calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); });
