@@ -134,6 +134,85 @@
   .badge.today{background:#fbe7c9;color:var(--amber);}
   .badge.overdue{background:#f6ded7;color:var(--danger);}
 
+  .d-icons{display:flex;gap:6px;flex-shrink:0;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-soft);
+    transition:.15s;flex-shrink:0;overflow:hidden;padding:0;
+  }
+  .icon-btn svg{width:17px;height:17px;}
+  .icon-btn:hover{border-color:var(--leaf);color:var(--leaf);box-shadow:0 2px 6px -2px rgba(92,122,82,0.35);}
+  .icon-btn.whatsapp{color:#25D366;}
+  .icon-btn.whatsapp:hover{background:#e9f9ee;border-color:#25D366;}
+  .icon-btn.photo.has-photo{border-color:var(--bloom);padding:0;}
+  .icon-btn.photo img{width:100%;height:100%;object-fit:cover;}
+  .icon-btn.photo:hover{border-color:var(--bloom);color:var(--bloom);}
+
+  /* Premium message modal */
+  .msg-modal-backdrop{
+    position:fixed;inset:0;background:rgba(32,40,28,0.55);backdrop-filter:blur(2px);
+    display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;
+  }
+  .msg-modal{
+    background:var(--paper);border-radius:20px;width:min(560px,100%);max-height:90vh;overflow:auto;
+    box-shadow:0 20px 60px -12px rgba(32,40,28,0.45);position:relative;
+  }
+  .msg-modal-head{
+    padding:22px 26px;background:linear-gradient(135deg, var(--moss-deep), #34432c);color:#fff;
+    border-radius:20px 20px 0 0;position:sticky;top:0;z-index:2;
+  }
+  .msg-modal-head h3{color:#fff;font-size:19px;margin-bottom:4px;}
+  .msg-modal-head p{margin:0;font-size:12.5px;color:#c7d4be;}
+  .msg-modal-close{
+    position:absolute;top:18px;right:20px;width:30px;height:30px;border-radius:50%;
+    background:rgba(255,255,255,0.12);border:none;color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .msg-modal-close:hover{background:rgba(255,255,255,0.22);}
+  .msg-body{padding:22px 26px 26px;}
+  .msg-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .msg-tab{
+    font-size:12px;font-weight:700;padding:7px 13px;border-radius:100px;border:1px solid var(--line);
+    background:#fff;color:var(--ink-soft);cursor:pointer;transition:.15s;
+  }
+  .msg-tab.active{background:var(--moss-deep);color:#fff;border-color:var(--moss-deep);}
+  .msg-card{
+    background:#f6f4ea;border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    font-size:13.5px;line-height:1.6;white-space:pre-wrap;color:var(--ink);margin-bottom:14px;
+    font-family:'Inter',sans-serif;position:relative;
+  }
+  .msg-card-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-bottom:8px;display:block;}
+  .msg-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .copy-btn{
+    display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+    padding:10px 16px;border-radius:10px;border:none;cursor:pointer;transition:.15s;
+    background:var(--moss);color:#fff;
+  }
+  .copy-btn:hover{background:var(--moss-deep);}
+  .copy-btn.secondary{background:#fff;color:var(--moss-deep);border:1px solid var(--line);}
+  .copy-btn.secondary:hover{border-color:var(--leaf);}
+  .copy-btn.copied{background:var(--leaf);}
+  .copy-btn svg{width:14px;height:14px;}
+  .msg-copyall{
+    margin-top:18px;padding-top:18px;border-top:1px dashed var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .msg-copyall p{margin:0;font-size:12px;color:var(--ink-soft);}
+
+  /* Photo modal */
+  .photo-modal-body{padding:22px 26px 26px;text-align:center;}
+  .photo-preview{
+    width:100%;max-height:340px;border-radius:14px;object-fit:cover;margin-bottom:16px;
+    border:1px solid var(--line);background:var(--ivory);
+  }
+  .photo-drop{
+    border:2px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;
+    color:var(--ink-soft);font-size:13.5px;cursor:pointer;transition:.15s;margin-bottom:16px;
+  }
+  .photo-drop:hover{border-color:var(--leaf);background:#f7faf5;color:var(--leaf);}
+  .photo-drop svg{width:28px;height:28px;margin-bottom:8px;}
+  .photo-uploading{color:var(--ink-soft);font-size:13px;padding:12px;}
+
   .empty{color:var(--ink-soft);font-size:13.5px;padding:20px 4px;text-align:center;}
 
   /* Subscriber table */
@@ -230,6 +309,8 @@
     header.top,nav.tabs,main{padding-left:16px;padding-right:16px;}
     .d-date{text-align:left;}
     .cal-cell{min-height:64px;}
+    .d-row{flex-wrap:wrap;}
+    .d-icons{order:1;margin-left:36px;}
   }
 </style>
 </head>
@@ -411,6 +492,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE CONFIG
@@ -432,6 +514,7 @@ const ALLOWED_EMAILS = ["hello@hanabee.in", "hello.hanabee@gmail.com"];
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 const SUBSCRIBERS = "hb_subscribers";
 const DELIVERIES = "hb_deliveries";
@@ -518,6 +601,47 @@ function relLabel(dueDate){
   if (diff === -1) return '1 day overdue';
   if (diff < 0) return Math.abs(diff) + ' days overdue';
   return 'in ' + diff + ' days';
+}
+
+/* ---------------- WhatsApp message templates ---------------- */
+function cadenceLabelFor(days){ return days === 7 ? 'Weekly' : days === 14 ? 'Biweekly' : 'Monthly'; }
+
+function subscriberDeliveries(subId){
+  return deliveries.filter(d => d.subscriberId === subId).sort((a,b) => a.dueDate - b.dueDate);
+}
+
+function buildScheduleMessage(sub){
+  const list = subscriberDeliveries(sub.id);
+  const cadence = cadenceLabelFor(sub.cadenceDays);
+  const slotLine = sub.timeSlot ? ` (${sub.timeSlot})` : '';
+  const lines = list.map((d,i) => `${i+1}. ${fmtDate(d.dueDate)}${d.timeSlot ? ' – ' + d.timeSlot : slotLine}`);
+  return `Hi ${sub.name}! 🌸 Thank you for subscribing to *Hanabee ${sub.product}* (${cadence}, ${sub.durationMonths} month${sub.durationMonths>1?'s':''}).
+
+Here's your full delivery schedule:
+${lines.join('\n')}
+
+We'll message you the day before each delivery, and again once your flowers are on the way. If any date needs to change, just reply here — happy to help!
+
+With love,
+Team Hanabee 🐝`;
+}
+
+function buildReminderMessage(sub, delivery){
+  return `Hi ${sub.name}! 🌸 Just a reminder that your *${delivery.product}* delivery is scheduled for *tomorrow, ${fmtDate(delivery.dueDate)}*${delivery.timeSlot ? ' between *' + delivery.timeSlot + '*' : ''}.
+
+Please make sure someone's available to receive it. Can't wait for you to see these blooms!
+
+With love,
+Team Hanabee 🐝`;
+}
+
+function buildDispatchMessage(sub, delivery){
+  return `Hi ${sub.name}! 🚚🌸 Your *${delivery.product}* has been dispatched and will arrive today${delivery.timeSlot ? ' between *' + delivery.timeSlot + '*' : ''}.
+
+Fresh blooms, freshly on their way to you! We'd love it if you shared a photo once they arrive 💛
+
+With love,
+Team Hanabee 🐝`;
 }
 
 /* ---------------- Data load ---------------- */
@@ -795,9 +919,31 @@ function deliveryRow(d){
   dateEl.className = 'd-date';
   dateEl.innerHTML = `${fmtDate(d.dueDate)}<span class="rel">${relLabel(d.dueDate)}</span>`;
 
+  const iconGroup = document.createElement('div');
+  iconGroup.className = 'd-icons';
+
+  const photoBtn = document.createElement('button');
+  photoBtn.className = 'icon-btn photo' + (d.photoUrl ? ' has-photo' : '');
+  photoBtn.title = d.photoUrl ? 'View delivery photo' : 'Add delivery photo';
+  photoBtn.innerHTML = d.photoUrl
+    ? `<img src="${d.photoUrl}" alt="">`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 9h4"/></svg>`;
+  photoBtn.addEventListener('click', (e) => { e.stopPropagation(); openPhotoModal(d); });
+
+  const sub = subscribers.find(s => s.id === d.subscriberId);
+  const waBtn = document.createElement('button');
+  waBtn.className = 'icon-btn whatsapp';
+  waBtn.title = 'WhatsApp message templates';
+  waBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.87 9.87 0 0 0 4.74 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.13-2.9-7C17.19 3.03 14.7 2 12.04 2Zm0 18.12h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.22 8.22 0 0 1-1.26-4.37c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.17 8.17 0 0 1 2.41 5.83c0 4.55-3.7 8.24-8.25 8.24Zm4.52-6.17c-.25-.12-1.47-.72-1.7-.81-.23-.08-.4-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.04-.38-1.99-1.22-.73-.66-1.23-1.46-1.37-1.71-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.44.06-.66.31-.23.25-.87.85-.87 2.08 0 1.22.89 2.4 1.02 2.57.12.17 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.29Z"/></svg>`;
+  waBtn.addEventListener('click', (e) => { e.stopPropagation(); openMessageModal(sub, d); });
+
+  iconGroup.appendChild(photoBtn);
+  iconGroup.appendChild(waBtn);
+
   row.appendChild(check);
   row.appendChild(main);
   row.appendChild(dateEl);
+  row.appendChild(iconGroup);
   return row;
 }
 
@@ -1095,6 +1241,181 @@ function openDayModal(date, items){
 
 // default the start-date field to today
 document.getElementById('f_start').value = isoDate(new Date());
+
+/* ================= WhatsApp Message Modal ================= */
+function copyToClipboard(text, btnEl){
+  navigator.clipboard.writeText(text).then(() => {
+    const original = btnEl.innerHTML;
+    btnEl.classList.add('copied');
+    btnEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Copied';
+    setTimeout(() => { btnEl.classList.remove('copied'); btnEl.innerHTML = original; }, 1600);
+  }).catch(() => toast('Could not copy — please copy manually'));
+}
+
+function openMessageModal(sub, delivery){
+  if (!sub){ toast('Subscriber not found'); return; }
+
+  const scheduleMsg = buildScheduleMessage(sub);
+  const reminderMsg = buildReminderMessage(sub, delivery);
+  const dispatchMsg = buildDispatchMessage(sub, delivery);
+  const templates = [
+    { key: 'schedule', label: 'Full Schedule', text: scheduleMsg },
+    { key: 'reminder', label: '1-Day Reminder', text: reminderMsg },
+    { key: 'dispatch', label: 'Dispatch Today', text: dispatchMsg },
+  ];
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'msg-modal-backdrop';
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+  const modal = document.createElement('div');
+  modal.className = 'msg-modal';
+  modal.innerHTML = `
+    <div class="msg-modal-head">
+      <button class="msg-modal-close" id="msgCloseBtn">✕</button>
+      <h3>💬 ${sub.name}</h3>
+      <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · delivery on ${fmtDate(delivery.dueDate)}</p>
+    </div>
+    <div class="msg-body">
+      <div class="msg-tabs" id="msgTabs"></div>
+      <div id="msgCardWrap"></div>
+      <div class="msg-copyall">
+        <p>Need to send more than one? Copy all three templates together.</p>
+        <button class="copy-btn secondary" id="copyAllBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          Copy all 3
+        </button>
+      </div>
+    </div>
+  `;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+
+  modal.querySelector('#msgCloseBtn').addEventListener('click', () => backdrop.remove());
+
+  const tabsEl = modal.querySelector('#msgTabs');
+  const cardWrap = modal.querySelector('#msgCardWrap');
+  let activeKey = 'schedule';
+
+  function renderActive(){
+    tabsEl.innerHTML = '';
+    templates.forEach(t => {
+      const tabBtn = document.createElement('button');
+      tabBtn.className = 'msg-tab' + (t.key === activeKey ? ' active' : '');
+      tabBtn.textContent = t.label;
+      tabBtn.addEventListener('click', () => { activeKey = t.key; renderActive(); });
+      tabsEl.appendChild(tabBtn);
+    });
+    const t = templates.find(x => x.key === activeKey);
+    cardWrap.innerHTML = '';
+    const card = document.createElement('div');
+    card.className = 'msg-card';
+    card.innerHTML = `<span class="msg-card-label">${t.label}</span>${t.text.replace(/</g,'&lt;')}`;
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy this message';
+    copyBtn.addEventListener('click', () => copyToClipboard(t.text, copyBtn));
+    actions.appendChild(copyBtn);
+    cardWrap.appendChild(card);
+    cardWrap.appendChild(actions);
+  }
+  renderActive();
+
+  modal.querySelector('#copyAllBtn').addEventListener('click', (e) => {
+    const combined = templates.map(t => `— ${t.label} —\n${t.text}`).join('\n\n----------\n\n');
+    copyToClipboard(combined, e.currentTarget);
+  });
+}
+
+/* ================= Delivery Photo Modal ================= */
+function openPhotoModal(delivery){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'msg-modal-backdrop';
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+  const modal = document.createElement('div');
+  modal.className = 'msg-modal';
+  modal.style.width = 'min(440px,100%)';
+  modal.innerHTML = `
+    <div class="msg-modal-head">
+      <button class="msg-modal-close" id="photoCloseBtn">✕</button>
+      <h3>📷 ${delivery.subscriberName}</h3>
+      <p>${delivery.product} · delivery on ${fmtDate(delivery.dueDate)}</p>
+    </div>
+    <div class="photo-modal-body" id="photoBody"></div>
+  `;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  modal.querySelector('#photoCloseBtn').addEventListener('click', () => backdrop.remove());
+
+  const body = modal.querySelector('#photoBody');
+
+  function renderBody(){
+    body.innerHTML = '';
+    if (delivery.photoUrl){
+      const img = document.createElement('img');
+      img.src = delivery.photoUrl;
+      img.className = 'photo-preview';
+      body.appendChild(img);
+
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.style.justifyContent = 'center';
+      const replaceBtn = document.createElement('button');
+      replaceBtn.className = 'copy-btn secondary';
+      replaceBtn.textContent = 'Replace photo';
+      replaceBtn.onclick = () => triggerFilePick();
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'act-btn delete';
+      removeBtn.style.padding = '10px 16px';
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = async () => {
+        await db.collection(DELIVERIES).doc(delivery.id).update({ photoUrl: firebase.firestore.FieldValue.delete() });
+        delivery.photoUrl = null;
+        renderBody();
+        toast('Photo removed');
+      };
+      actions.appendChild(replaceBtn);
+      actions.appendChild(removeBtn);
+      body.appendChild(actions);
+    } else {
+      const drop = document.createElement('div');
+      drop.className = 'photo-drop';
+      drop.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;display:block;"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 9h4"/></svg>Tap to add a photo of the flowers sent<br><span style="font-size:11.5px;">JPG or PNG, up to ~5MB</span>`;
+      drop.onclick = () => triggerFilePick();
+      body.appendChild(drop);
+    }
+  }
+
+  function triggerFilePick(){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+      body.innerHTML = '<div class="photo-uploading">Uploading photo…</div>';
+      try {
+        const path = `delivery-photos/${delivery.subscriberId}/${delivery.id}-${Date.now()}.jpg`;
+        const ref = storage.ref().child(path);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await db.collection(DELIVERIES).doc(delivery.id).update({ photoUrl: url });
+        delivery.photoUrl = url;
+        renderBody();
+        toast('Photo saved');
+      } catch (err){
+        toast('Upload failed — check Firebase Storage is enabled');
+        renderBody();
+      }
+    };
+    input.click();
+  }
+
+  renderBody();
+}
 </script>
 </body>
 </html>
