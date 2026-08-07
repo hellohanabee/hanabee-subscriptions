@@ -98,7 +98,8 @@
 
   /* Dashboard stat row */
   .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
-  .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);}
+  .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);transition:transform .15s ease, box-shadow .15s ease;}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px -6px rgba(38,41,31,0.18), 0 1px 2px rgba(38,41,31,0.08);}
   .stat-card .num{font-family:'Fraunces',serif;font-size:32px;color:var(--moss-deep);line-height:1;}
   .stat-card .label{font-size:12.5px;color:var(--ink-soft);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;}
   .stat-card.warn .num{color:var(--amber);}
@@ -260,14 +261,44 @@
   .act-btn.delete:hover{background:#8f3a24;box-shadow:0 3px 10px -3px rgba(179,73,47,0.55);}
 
   /* Form */
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
-  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
-  .field input, .field select{
-    width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;
-    font-family:'Inter',sans-serif;background:#fff;color:var(--ink);
+  .form-panel{padding:30px 32px;}
+  .form-subhead{margin:4px 0 0;font-size:13px;color:var(--ink-soft);font-weight:500;}
+  .form-section{margin-bottom:28px;padding-bottom:26px;border-bottom:1px solid var(--line);}
+  .form-section:last-of-type{border-bottom:none;padding-bottom:0;margin-bottom:22px;}
+  .form-section-label{
+    display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+    color:var(--leaf);margin-bottom:14px;
   }
-  .field input:focus, .field select:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px #e4ecdd;}
-  .form-actions{margin-top:18px;display:flex;gap:10px;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;text-transform:uppercase;letter-spacing:.4px;}
+  .field input, .field select{
+    width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;font-size:14.5px;
+    font-family:'Inter',sans-serif;background:#fff;color:var(--ink);transition:.15s;
+  }
+  .field input:hover, .field select:hover{border-color:#c9c2a8;}
+  .field input:focus, .field select:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 4px #e4ecdd;}
+  .form-actions{margin-top:6px;display:flex;gap:10px;}
+
+  /* Chip picker (product / cadence / plan length) */
+  .chip-grid{display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{
+    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);
+    background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 18px;
+    cursor:pointer;transition:transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .chip:hover{border-color:var(--leaf);background:#f7faf5;transform:translateY(-1px);box-shadow:0 4px 10px -4px rgba(92,122,82,0.3);}
+  .chip.selected{
+    background:linear-gradient(135deg, var(--moss), var(--moss-deep));color:#fff;border-color:var(--moss-deep);
+    box-shadow:0 4px 14px -4px rgba(32,40,28,0.45);
+  }
+  .chip.selected:hover{transform:translateY(-1px);}
+  .chip.chip-add{
+    border-style:dashed;color:var(--leaf);background:#fbfaf5;font-size:13px;
+  }
+  .chip.chip-add:hover{background:#f0f5ec;}
+  .chip.chip-add svg{width:14px;height:14px;}
+  .chip-grid + .chip-add{margin-top:10px;}
 
   /* Calendar */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -415,61 +446,86 @@
 
     <!-- ---------- ADD SUBSCRIBER ---------- -->
     <section id="tab-add" class="tab-content hidden">
-      <section class="panel">
-        <div class="panel-head"><h2>Add a subscriber</h2></div>
+      <section class="panel form-panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="addFormTitle">Add a subscriber</h2>
+            <p class="form-subhead">Fill in the details below to set up their delivery schedule.</p>
+          </div>
+        </div>
         <form id="addForm">
-          <div class="form-grid">
-            <div class="field">
-              <label>Customer name</label>
-              <input type="text" id="f_name" required placeholder="e.g. Priya Menon">
-            </div>
-            <div class="field">
-              <label>Phone</label>
-              <input type="text" id="f_phone" placeholder="e.g. 98450 12345">
-            </div>
-            <div class="field">
-              <label>Delivery address</label>
-              <input type="text" id="f_address" placeholder="Area / landmark">
-            </div>
-            <div class="field">
-              <label>Product</label>
-              <select id="f_product"></select>
-              <button type="button" class="link-btn" id="addProductBtn" style="margin-top:6px;">+ Add new product</button>
-            </div>
-            <div class="field">
-              <label>Cadence</label>
-              <select id="f_cadence">
-                <option value="7">Weekly</option>
-                <option value="14">Biweekly</option>
-                <option value="30">Monthly</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Plan length</label>
-              <select id="f_duration">
-                <option value="1">1 month</option>
-                <option value="3">3 months</option>
-                <option value="6">6 months</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Start date</label>
-              <input type="date" id="f_start" required>
-            </div>
-            <div class="field">
-              <label>Delivery time slot</label>
-              <select id="f_timeslot">
-                <option value="">No preference</option>
-                <option>9:00 AM – 12:00 PM</option>
-                <option>12:00 PM – 3:00 PM</option>
-                <option>3:00 PM – 6:00 PM</option>
-                <option>6:00 PM – 9:00 PM</option>
-                <option value="__custom">Custom…</option>
-              </select>
-              <input type="text" id="f_timeslot_custom" placeholder="e.g. 6:30 PM" style="margin-top:8px;display:none;">
+
+          <div class="form-section">
+            <span class="form-section-label">Customer details</span>
+            <div class="form-grid">
+              <div class="field">
+                <label>Customer name</label>
+                <input type="text" id="f_name" required placeholder="e.g. Priya Menon">
+              </div>
+              <div class="field">
+                <label>Phone</label>
+                <input type="text" id="f_phone" placeholder="e.g. 98450 12345">
+              </div>
+              <div class="field" style="grid-column:1 / -1;">
+                <label>Delivery address</label>
+                <input type="text" id="f_address" placeholder="Area / landmark">
+              </div>
             </div>
           </div>
-          <div id="clearHistoryRow" style="display:none;margin-top:16px;padding:12px 14px;background:var(--ivory);border:1px solid var(--line);border-radius:10px;">
+
+          <div class="form-section">
+            <span class="form-section-label">Product</span>
+            <input type="hidden" id="f_product">
+            <div class="chip-grid" id="productChips"></div>
+            <button type="button" class="chip chip-add" id="addProductBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add new product
+            </button>
+          </div>
+
+          <div class="form-section">
+            <span class="form-section-label">Delivery cadence</span>
+            <input type="hidden" id="f_cadence" value="7">
+            <div class="chip-grid" id="cadenceChips">
+              <button type="button" class="chip" data-value="7">Weekly</button>
+              <button type="button" class="chip" data-value="14">Biweekly</button>
+              <button type="button" class="chip" data-value="30">Monthly</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <span class="form-section-label">Plan length</span>
+            <input type="hidden" id="f_duration" value="1">
+            <div class="chip-grid" id="durationChips">
+              <button type="button" class="chip" data-value="1">1 month</button>
+              <button type="button" class="chip" data-value="3">3 months</button>
+              <button type="button" class="chip" data-value="6">6 months</button>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <span class="form-section-label">Schedule</span>
+            <div class="form-grid">
+              <div class="field">
+                <label>Start date</label>
+                <input type="date" id="f_start" required>
+              </div>
+              <div class="field">
+                <label>Delivery time slot</label>
+                <select id="f_timeslot">
+                  <option value="">No preference</option>
+                  <option>9:00 AM – 12:00 PM</option>
+                  <option>12:00 PM – 3:00 PM</option>
+                  <option>3:00 PM – 6:00 PM</option>
+                  <option>6:00 PM – 9:00 PM</option>
+                  <option value="__custom">Custom…</option>
+                </select>
+                <input type="text" id="f_timeslot_custom" placeholder="e.g. 6:30 PM" style="margin-top:8px;display:none;">
+              </div>
+            </div>
+          </div>
+
+          <div id="clearHistoryRow" style="display:none;margin-top:6px;padding:14px 16px;background:var(--ivory);border:1px solid var(--line);border-radius:12px;">
             <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink-soft);cursor:pointer;text-transform:none;font-weight:500;">
               <input type="checkbox" id="f_clearHistory" style="margin-top:2px;">
               <span>Also clear this subscriber's existing delivery history (removes all past delivered/missed records too, not just upcoming ones) — use this if earlier deliveries were logged on wrong dates.</span>
@@ -562,7 +618,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
     if (btn.dataset.tab === 'calendar') renderCalendar();
     if (btn.dataset.tab === 'add'){
-      document.querySelector('#tab-add h2').textContent = editingSubscriberId ? 'Edit subscriber' : 'Add a subscriber';
+      document.getElementById('addFormTitle').textContent = editingSubscriberId ? 'Edit subscriber' : 'Add a subscriber';
     }
   });
 });
@@ -672,19 +728,31 @@ function initApp(){
   });
 }
 
-function populateProductSelect(){
-  const sel = document.getElementById('f_product');
-  const current = sel.value;
-  sel.innerHTML = '';
-  products.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p; opt.textContent = p;
-    sel.appendChild(opt);
+function setChipValue(hiddenInputId, chipContainerId, value){
+  document.getElementById(hiddenInputId).value = value;
+  const container = document.getElementById(chipContainerId);
+  container.querySelectorAll('.chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.value === String(value));
   });
-  const otherOpt = document.createElement('option');
-  otherOpt.value = 'Other'; otherOpt.textContent = 'Other';
-  sel.appendChild(otherOpt);
-  if (current && products.includes(current)) sel.value = current;
+}
+
+function populateProductSelect(){
+  const hidden = document.getElementById('f_product');
+  const current = hidden.value;
+  const container = document.getElementById('productChips');
+  container.innerHTML = '';
+  const allNames = products.includes('Other') ? products : [...products, 'Other'];
+  allNames.forEach(p => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip';
+    chip.dataset.value = p;
+    chip.textContent = p;
+    chip.addEventListener('click', () => setChipValue('f_product', 'productChips', p));
+    container.appendChild(chip);
+  });
+  const toSelect = (current && allNames.includes(current)) ? current : allNames[0];
+  setChipValue('f_product', 'productChips', toSelect);
 }
 
 document.getElementById('addProductBtn').addEventListener('click', async () => {
@@ -693,13 +761,22 @@ document.getElementById('addProductBtn').addEventListener('click', async () => {
   const trimmed = name.trim();
   if (products.includes(trimmed)){
     toast(`"${trimmed}" already exists`);
-    document.getElementById('f_product').value = trimmed;
+    setChipValue('f_product', 'productChips', trimmed);
     return;
   }
   await db.collection(PRODUCTS).add({ name: trimmed });
   toast(`Added product "${trimmed}"`);
-  setTimeout(() => { document.getElementById('f_product').value = trimmed; }, 300);
+  setTimeout(() => { setChipValue('f_product', 'productChips', trimmed); }, 300);
 });
+
+document.getElementById('cadenceChips').querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => setChipValue('f_cadence', 'cadenceChips', chip.dataset.value));
+});
+document.getElementById('durationChips').querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => setChipValue('f_duration', 'durationChips', chip.dataset.value));
+});
+setChipValue('f_cadence', 'cadenceChips', '7');
+setChipValue('f_duration', 'durationChips', '1');
 
 document.getElementById('f_timeslot').addEventListener('change', (e) => {
   const customInput = document.getElementById('f_timeslot_custom');
@@ -846,19 +923,23 @@ function exitEditMode(){
   document.getElementById('f_clearHistory').checked = false;
   document.getElementById('addForm').reset();
   document.getElementById('f_start').value = isoDate(new Date());
+  setChipValue('f_cadence', 'cadenceChips', '7');
+  setChipValue('f_duration', 'durationChips', '1');
+  if (products.length) setChipValue('f_product', 'productChips', products[0]);
+  document.getElementById('addFormTitle').textContent = 'Add a subscriber';
 }
 document.getElementById('addFormCancelEdit').addEventListener('click', exitEditMode);
 
 function openEditForm(sub){
   editingSubscriberId = sub.id;
   document.querySelector('.tab-btn[data-tab="add"]').click();
-  document.querySelector('#tab-add h2').textContent = 'Edit subscriber';
+  document.getElementById('addFormTitle').textContent = 'Edit subscriber';
   document.getElementById('f_name').value = sub.name;
   document.getElementById('f_phone').value = sub.phone || '';
   document.getElementById('f_address').value = sub.address || '';
-  document.getElementById('f_product').value = sub.product;
-  document.getElementById('f_cadence').value = String(sub.cadenceDays);
-  document.getElementById('f_duration').value = String(sub.durationMonths);
+  setChipValue('f_product', 'productChips', sub.product);
+  setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
+  setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
   document.getElementById('f_start').value = sub.startDate;
   const slotSel = document.getElementById('f_timeslot');
   const knownSlots = Array.from(slotSel.options).map(o => o.value);
@@ -967,12 +1048,13 @@ function renewRow(sub, label){
 function openRenewForm(sub){
   editingSubscriberId = null;
   document.querySelector('.tab-btn[data-tab="add"]').click();
+  document.getElementById('addFormTitle').textContent = 'Add a subscriber';
   document.getElementById('f_name').value = sub.name;
   document.getElementById('f_phone').value = sub.phone || '';
   document.getElementById('f_address').value = sub.address || '';
-  document.getElementById('f_product').value = sub.product;
-  document.getElementById('f_cadence').value = String(sub.cadenceDays);
-  document.getElementById('f_duration').value = String(sub.durationMonths);
+  setChipValue('f_product', 'productChips', sub.product);
+  setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
+  setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
   document.getElementById('f_start').value = isoDate(new Date());
   document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
   document.getElementById('addFormCancelEdit').style.display = 'none';
