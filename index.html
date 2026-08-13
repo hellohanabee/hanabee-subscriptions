@@ -216,6 +216,50 @@
 
   .empty{color:var(--ink-soft);font-size:13.5px;padding:20px 4px;text-align:center;}
 
+  /* Filter bar */
+  .filter-panel{padding:16px 20px;}
+  .filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .filter-search{
+    display:flex;align-items:center;gap:8px;background:var(--ivory);border:1px solid var(--line);
+    border-radius:10px;padding:8px 12px;flex:1;min-width:200px;
+  }
+  .filter-search svg{width:15px;height:15px;color:var(--ink-soft);flex-shrink:0;}
+  .filter-search input{border:none;background:none;outline:none;font-size:13.5px;width:100%;font-family:'Inter',sans-serif;color:var(--ink);}
+  .filter-bar select, .filter-bar input[type="month"]{
+    padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;
+    font-family:'Inter',sans-serif;background:#fff;color:var(--ink);
+  }
+
+  /* Analytics bars */
+  .analytics-row{display:flex;align-items:center;gap:12px;padding:10px 2px;}
+  .analytics-row .a-label{width:180px;flex-shrink:0;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .analytics-row .a-track{flex:1;height:10px;border-radius:100px;background:var(--ivory);overflow:hidden;}
+  .analytics-row .a-fill{height:100%;border-radius:100px;background:linear-gradient(90deg, var(--leaf), var(--moss));}
+  .analytics-row .a-num{width:36px;text-align:right;font-size:13px;font-weight:700;color:var(--moss-deep);flex-shrink:0;}
+  .rate-hero{display:flex;align-items:baseline;gap:10px;padding:6px 2px 4px;}
+  .rate-hero .big{font-family:'Fraunces',serif;font-size:44px;color:var(--moss-deep);line-height:1;}
+  .rate-hero .cap{font-size:13px;color:var(--ink-soft);}
+
+  /* Clickable subscriber row */
+  tr.sub-row{cursor:pointer;}
+  tr.sub-row:hover{background:#f7faf5;}
+
+  /* Subscriber detail modal */
+  .detail-head-card{
+    display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--ivory);
+    border:1px solid var(--line);border-radius:14px;margin-bottom:18px;
+  }
+  .detail-avatar{
+    width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--bloom),var(--moss));
+    color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;
+    font-size:18px;flex-shrink:0;
+  }
+  .detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .detail-stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
+  .detail-stat .n{font-family:'Fraunces',serif;font-size:22px;color:var(--moss-deep);}
+  .detail-stat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-top:2px;}
+  .detail-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--leaf);margin:18px 0 8px;}
+
   /* Subscriber table */
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);
@@ -342,6 +386,9 @@
     .cal-cell{min-height:64px;}
     .d-row{flex-wrap:wrap;}
     .d-icons{order:1;margin-left:36px;}
+    #notifyBtn{font-size:12px;padding:9px 10px;}
+    .filter-bar select, .filter-bar input[type="month"]{flex:1;min-width:120px;}
+    .detail-stats{grid-template-columns:1fr 1fr 1fr;}
   }
 </style>
 </head>
@@ -372,6 +419,7 @@
       </div>
     </div>
     <div class="top-right">
+      <button class="btn-ghost" id="notifyBtn" title="Enable delivery reminders in this browser">🔔 Notifications</button>
       <span class="user-chip mono" id="userChip"></span>
       <button class="btn-ghost" id="signOutBtn">Sign out</button>
     </div>
@@ -381,6 +429,8 @@
     <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
     <button class="tab-btn" data-tab="calendar">Calendar</button>
     <button class="tab-btn" data-tab="subscribers">Subscribers</button>
+    <button class="tab-btn" data-tab="history">History</button>
+    <button class="tab-btn" data-tab="analytics">Analytics</button>
     <button class="tab-btn" data-tab="add">+ Add Subscriber</button>
   </nav>
 
@@ -389,6 +439,23 @@
     <!-- ---------- DASHBOARD ---------- -->
     <section id="tab-dashboard" class="tab-content">
       <div class="stat-row" id="statRow"></div>
+
+      <section class="panel filter-panel">
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="dashSearch" placeholder="Search subscriber or product…">
+          </div>
+          <select id="dashFilterProduct"><option value="">All products</option></select>
+          <select id="dashFilterCadence">
+            <option value="">All cadences</option>
+            <option value="7">Weekly</option>
+            <option value="14">Biweekly</option>
+            <option value="30">Monthly</option>
+          </select>
+          <button type="button" class="link-btn" id="dashFilterClear">Clear filters</button>
+        </div>
+      </section>
 
       <section class="panel">
         <div class="panel-head"><h2>Due today</h2></div>
@@ -408,6 +475,52 @@
       <section class="panel">
         <div class="panel-head"><h2 style="color:var(--amber)">Ending soon / completed — renew?</h2></div>
         <div id="dueEnding"></div>
+      </section>
+    </section>
+
+    <!-- ---------- HISTORY ---------- -->
+    <section id="tab-history" class="tab-content hidden">
+      <section class="panel filter-panel">
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="historySearch" placeholder="Search subscriber or product…">
+          </div>
+          <select id="historyFilterStatus">
+            <option value="">All statuses</option>
+            <option value="delivered">Delivered</option>
+            <option value="missed">Missed</option>
+          </select>
+          <input type="month" id="historyFilterMonth">
+          <button type="button" class="btn btn-ghost" id="historyExportBtn" style="border-color:var(--line);color:var(--moss-deep);">Export CSV</button>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Completed deliveries</h2></div>
+        <div id="historyList"></div>
+      </section>
+    </section>
+
+    <!-- ---------- ANALYTICS ---------- -->
+    <section id="tab-analytics" class="tab-content hidden">
+      <div class="stat-row" id="analyticsStatRow"></div>
+      <section class="panel">
+        <div class="panel-head"><h2>Subscribers by product</h2></div>
+        <div id="analyticsByProduct"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Subscribers by cadence</h2></div>
+        <div id="analyticsByCadence"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Delivery outcomes (all-time)</h2></div>
+        <div id="analyticsOutcomes"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head">
+          <h2>On-time delivery rate</h2>
+        </div>
+        <div id="analyticsRate"></div>
       </section>
     </section>
 
@@ -431,8 +544,12 @@
       <section class="panel">
         <div class="panel-head">
           <h2>All subscribers</h2>
-          <input id="subSearch" placeholder="Search name or product…" style="padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;min-width:220px;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input id="subSearch" placeholder="Search name or product…" style="padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;min-width:220px;">
+            <button type="button" class="btn btn-ghost" id="subscribersExportBtn" style="border-color:var(--line);color:var(--moss-deep);">Export CSV</button>
+          </div>
         </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin:-8px 0 14px;">Tap a row to see full delivery history for that subscriber.</p>
         <div style="overflow-x:auto;">
         <table id="subTable">
           <thead>
@@ -617,6 +734,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
     if (btn.dataset.tab === 'calendar') renderCalendar();
+    if (btn.dataset.tab === 'history') renderHistory();
+    if (btn.dataset.tab === 'analytics') renderAnalytics();
     if (btn.dataset.tab === 'add'){
       document.getElementById('addFormTitle').textContent = editingSubscriberId ? 'Edit subscriber' : 'Add a subscriber';
     }
@@ -704,27 +823,57 @@ Team Hanabee 🐝`;
 function initApp(){
   if (appInited) return;
   appInited = true;
+
+  // Show default products immediately so the picker is never empty while Firestore loads
+  products = DEFAULT_PRODUCTS.slice();
+  populateProductSelect();
+
   db.collection(SUBSCRIBERS).onSnapshot(snap => {
     subscribers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSubscribers();
     renderDashboard();
+  }, err => {
+    console.error('Subscribers listener error:', err);
+    toast('Could not load subscribers — check Firestore rules/connection');
   });
+
   db.collection(DELIVERIES).orderBy('dueDate').onSnapshot(snap => {
     deliveries = snap.docs.map(d => ({ id: d.id, ...d.data(), dueDate: new Date(d.data().dueDate) }));
     renderDashboard();
     renderSubscribers();
     if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
+    if (!document.getElementById('tab-history').classList.contains('hidden')) renderHistory();
+    if (!document.getElementById('tab-analytics').classList.contains('hidden')) renderAnalytics();
     subscribers.filter(s => s.status === 'active').forEach(s => checkAndCompleteSubscriber(s.id));
+  }, err => {
+    console.error('Deliveries listener error:', err);
+    toast('Could not load deliveries — check Firestore rules/connection');
   });
-  db.collection(PRODUCTS).orderBy('name').onSnapshot(async snap => {
+
+  initProducts();
+}
+
+async function initProducts(){
+  try {
+    const snap = await db.collection(PRODUCTS).get();
     if (snap.empty){
       const batch = db.batch();
       DEFAULT_PRODUCTS.forEach(name => batch.set(db.collection(PRODUCTS).doc(), { name }));
       await batch.commit();
-      return; // onSnapshot will fire again with the seeded data
     }
+  } catch (err){
+    console.error('Product seeding failed:', err);
+    toast('Could not set up products in Firestore — using defaults locally');
+    // products already holds DEFAULT_PRODUCTS as a fallback, so the picker still works
+  }
+
+  db.collection(PRODUCTS).orderBy('name').onSnapshot(snap => {
+    if (snap.empty) return; // keep local defaults showing
     products = snap.docs.map(d => d.data().name);
     populateProductSelect();
+  }, err => {
+    console.error('Products listener error:', err);
+    toast('Could not sync products — using defaults locally');
   });
 }
 
@@ -753,6 +902,17 @@ function populateProductSelect(){
   });
   const toSelect = (current && allNames.includes(current)) ? current : allNames[0];
   setChipValue('f_product', 'productChips', toSelect);
+
+  // keep the dashboard filter dropdown in sync too
+  const filterSel = document.getElementById('dashFilterProduct');
+  const filterCurrent = filterSel.value;
+  filterSel.innerHTML = '<option value="">All products</option>';
+  products.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    filterSel.appendChild(opt);
+  });
+  if (filterCurrent) filterSel.value = filterCurrent;
 }
 
 document.getElementById('addProductBtn').addEventListener('click', async () => {
@@ -832,7 +992,25 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const startDateStr = document.getElementById('f_start').value;
   const timeSlot = getTimeSlotValue();
   if (!name || !startDateStr) return;
+  if (!product){ toast('Please select a product'); return; }
 
+  const submitBtn = document.getElementById('addFormSubmitBtn');
+  const originalBtnText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Saving…';
+
+  try {
+    await saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot });
+  } catch (err){
+    console.error('Save subscriber failed:', err);
+    toast('Something went wrong saving — check console / Firestore rules');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
+  }
+});
+
+async function saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot }){
   const startDate = new Date(startDateStr + 'T00:00:00');
   const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + durationMonths);
@@ -910,10 +1088,10 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot);
 
   toast(`Saved ${name} — ${count} deliveries scheduled`);
-  e.target.reset();
+  document.getElementById('addForm').reset();
   document.getElementById('f_start').value = isoDate(new Date());
   document.querySelector('.tab-btn[data-tab="dashboard"]').click();
-});
+}
 
 function exitEditMode(){
   editingSubscriberId = null;
@@ -1068,7 +1246,14 @@ function renderDashboard(){
   const weekEnd = addDays(today, 7);
 
   const activeSubIds = new Set(subscribers.filter(s => s.status === 'active').map(s => s.id));
-  const relevant = deliveries.filter(d => activeSubIds.has(d.subscriberId));
+  let relevant = deliveries.filter(d => activeSubIds.has(d.subscriberId));
+
+  const searchTerm = (document.getElementById('dashSearch').value || '').toLowerCase().trim();
+  const filterProduct = document.getElementById('dashFilterProduct').value;
+  const filterCadence = document.getElementById('dashFilterCadence').value;
+  if (searchTerm) relevant = relevant.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(searchTerm));
+  if (filterProduct) relevant = relevant.filter(d => d.product === filterProduct);
+  if (filterCadence) relevant = relevant.filter(d => String(d.cadenceDays) === filterCadence);
 
   const dueTodayList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) === 0);
   const dueWeekList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) > 0 && d.dueDate < weekEnd)
@@ -1094,6 +1279,8 @@ function renderDashboard(){
   fillList('dueToday', dueTodayList, 'Nothing due today. 🌿');
   fillList('dueWeek', dueWeekList, 'No deliveries scheduled in the next 7 days.');
   fillList('dueOverdue', overdueList, 'Nothing overdue — all caught up.');
+
+  checkBrowserNotifications(dueTodayList);
 
   // Ending soon (active, last delivery within 7 days) + already completed
   const endingEl = document.getElementById('dueEnding');
@@ -1163,8 +1350,11 @@ function renderSubscribers(){
       <td><span class="status-pill ${s.status}">${s.status}</span></td>
       <td></td>
     `;
+    tr.className = 'sub-row';
+    tr.addEventListener('click', () => openSubscriberDetail(s));
     const actionsTd = tr.lastElementChild;
     actionsTd.className = 'actions-cell';
+    actionsTd.addEventListener('click', (e) => e.stopPropagation());
 
     const editBtn = document.createElement('button');
     editBtn.className = 'act-btn edit';
@@ -1216,6 +1406,16 @@ function renderSubscribers(){
   });
 }
 document.getElementById('subSearch').addEventListener('input', renderSubscribers);
+
+document.getElementById('dashSearch').addEventListener('input', renderDashboard);
+document.getElementById('dashFilterProduct').addEventListener('change', renderDashboard);
+document.getElementById('dashFilterCadence').addEventListener('change', renderDashboard);
+document.getElementById('dashFilterClear').addEventListener('click', () => {
+  document.getElementById('dashSearch').value = '';
+  document.getElementById('dashFilterProduct').value = '';
+  document.getElementById('dashFilterCadence').value = '';
+  renderDashboard();
+});
 
 async function confirmDeleteSubscriber(s){
   const sure = confirm(
@@ -1498,6 +1698,255 @@ function openPhotoModal(delivery){
 
   renderBody();
 }
+
+/* ================= CSV Export ================= */
+function csvEscape(val){
+  const s = String(val ?? '');
+  if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+function downloadCSV(filename, headers, rows){
+  const lines = [headers.map(csvEscape).join(',')].concat(
+    rows.map(r => r.map(csvEscape).join(','))
+  );
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(`Downloaded ${filename}`);
+}
+
+document.getElementById('subscribersExportBtn').addEventListener('click', () => {
+  const headers = ['Name','Phone','Address','Product','Cadence','Plan Length (months)','Start Date','Time Slot','Status'];
+  const rows = subscribers.map(s => [
+    s.name, s.phone || '', s.address || '', s.product, cadenceLabelFor(s.cadenceDays),
+    s.durationMonths, s.startDate, s.timeSlot || '', s.status
+  ]);
+  downloadCSV(`hanabee-subscribers-${isoDate(new Date())}.csv`, headers, rows);
+});
+
+/* ================= History Tab ================= */
+function renderHistory(){
+  const listEl = document.getElementById('historyList');
+  const search = (document.getElementById('historySearch').value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('historyFilterStatus').value;
+  const monthFilter = document.getElementById('historyFilterMonth').value; // YYYY-MM
+
+  let resolved = deliveries.filter(d => d.status === 'delivered' || d.status === 'missed');
+  if (search) resolved = resolved.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(search));
+  if (statusFilter) resolved = resolved.filter(d => d.status === statusFilter);
+  if (monthFilter) resolved = resolved.filter(d => isoDate(d.dueDate).startsWith(monthFilter));
+  resolved = resolved.sort((a,b) => b.dueDate - a.dueDate);
+
+  listEl.innerHTML = '';
+  if (!resolved.length){
+    listEl.innerHTML = `<div class="empty">No completed deliveries match these filters yet.</div>`;
+    return;
+  }
+  resolved.forEach(d => listEl.appendChild(deliveryRow(d)));
+}
+
+document.getElementById('historySearch').addEventListener('input', renderHistory);
+document.getElementById('historyFilterStatus').addEventListener('change', renderHistory);
+document.getElementById('historyFilterMonth').addEventListener('change', renderHistory);
+document.getElementById('historyExportBtn').addEventListener('click', () => {
+  const search = (document.getElementById('historySearch').value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('historyFilterStatus').value;
+  const monthFilter = document.getElementById('historyFilterMonth').value;
+  let resolved = deliveries.filter(d => d.status === 'delivered' || d.status === 'missed');
+  if (search) resolved = resolved.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(search));
+  if (statusFilter) resolved = resolved.filter(d => d.status === statusFilter);
+  if (monthFilter) resolved = resolved.filter(d => isoDate(d.dueDate).startsWith(monthFilter));
+  resolved = resolved.sort((a,b) => b.dueDate - a.dueDate);
+
+  const headers = ['Subscriber','Product','Cadence','Due Date','Time Slot','Status','Has Photo'];
+  const rows = resolved.map(d => [
+    d.subscriberName, d.product, cadenceLabelFor(d.cadenceDays), fmtDate(d.dueDate),
+    d.timeSlot || '', d.status, d.photoUrl ? 'Yes' : 'No'
+  ]);
+  downloadCSV(`hanabee-delivery-history-${isoDate(new Date())}.csv`, headers, rows);
+});
+
+/* ================= Analytics Tab ================= */
+function analyticsBarRow(label, num, max){
+  const pct = max > 0 ? Math.round((num / max) * 100) : 0;
+  const row = document.createElement('div');
+  row.className = 'analytics-row';
+  row.innerHTML = `
+    <div class="a-label">${label}</div>
+    <div class="a-track"><div class="a-fill" style="width:${pct}%;"></div></div>
+    <div class="a-num">${num}</div>
+  `;
+  return row;
+}
+
+function renderAnalytics(){
+  const activeSubs = subscribers.filter(s => s.status === 'active');
+  const totalSubs = subscribers.length;
+  const delivered = deliveries.filter(d => d.status === 'delivered').length;
+  const missed = deliveries.filter(d => d.status === 'missed').length;
+  const pending = deliveries.filter(d => d.status === 'pending').length;
+  const totalResolved = delivered + missed;
+  const onTimeRate = totalResolved > 0 ? Math.round((delivered / totalResolved) * 100) : 100;
+
+  const statRow = document.getElementById('analyticsStatRow');
+  statRow.innerHTML = '';
+  [
+    { label: 'Total subscribers', num: totalSubs, cls:'' },
+    { label: 'Active', num: activeSubs.length, cls:'' },
+    { label: 'Delivered (all-time)', num: delivered, cls:'' },
+    { label: 'Missed (all-time)', num: missed, cls: missed > 0 ? 'danger' : '' },
+  ].forEach(s => {
+    const c = document.createElement('div');
+    c.className = 'stat-card ' + s.cls;
+    c.innerHTML = `<div class="num">${s.num}</div><div class="label">${s.label}</div>`;
+    statRow.appendChild(c);
+  });
+
+  // By product (active subscribers)
+  const byProduct = {};
+  activeSubs.forEach(s => { byProduct[s.product] = (byProduct[s.product] || 0) + 1; });
+  const productEl = document.getElementById('analyticsByProduct');
+  productEl.innerHTML = '';
+  const productEntries = Object.entries(byProduct).sort((a,b) => b[1]-a[1]);
+  if (!productEntries.length){ productEl.innerHTML = '<div class="empty">No active subscribers yet.</div>'; }
+  else {
+    const max = Math.max(...productEntries.map(e => e[1]));
+    productEntries.forEach(([name, count]) => productEl.appendChild(analyticsBarRow(name, count, max)));
+  }
+
+  // By cadence
+  const byCadence = { 7: 0, 14: 0, 30: 0 };
+  activeSubs.forEach(s => { byCadence[s.cadenceDays] = (byCadence[s.cadenceDays] || 0) + 1; });
+  const cadenceEl = document.getElementById('analyticsByCadence');
+  cadenceEl.innerHTML = '';
+  const cadenceMax = Math.max(1, ...Object.values(byCadence));
+  cadenceEl.appendChild(analyticsBarRow('Weekly', byCadence[7], cadenceMax));
+  cadenceEl.appendChild(analyticsBarRow('Biweekly', byCadence[14], cadenceMax));
+  cadenceEl.appendChild(analyticsBarRow('Monthly', byCadence[30], cadenceMax));
+
+  // Outcomes
+  const outcomesEl = document.getElementById('analyticsOutcomes');
+  outcomesEl.innerHTML = '';
+  const outcomeMax = Math.max(1, delivered, missed, pending);
+  outcomesEl.appendChild(analyticsBarRow('Delivered', delivered, outcomeMax));
+  outcomesEl.appendChild(analyticsBarRow('Missed', missed, outcomeMax));
+  outcomesEl.appendChild(analyticsBarRow('Pending / upcoming', pending, outcomeMax));
+
+  // On-time rate hero
+  const rateEl = document.getElementById('analyticsRate');
+  rateEl.innerHTML = `
+    <div class="rate-hero">
+      <span class="big">${onTimeRate}%</span>
+      <span class="cap">of resolved deliveries were successfully delivered (${delivered} of ${totalResolved || 0})</span>
+    </div>
+  `;
+}
+
+/* ================= Subscriber Detail Modal ================= */
+function openSubscriberDetail(sub){
+  const list = subscriberDeliveries(sub.id);
+  const delivered = list.filter(d => d.status === 'delivered').length;
+  const missed = list.filter(d => d.status === 'missed').length;
+  const pending = list.filter(d => d.status === 'pending').length;
+  const initials = sub.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'msg-modal-backdrop';
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+  const modal = document.createElement('div');
+  modal.className = 'msg-modal';
+  modal.innerHTML = `
+    <div class="msg-modal-head">
+      <button class="msg-modal-close" id="detailCloseBtn">✕</button>
+      <h3>${sub.name}</h3>
+      <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · ${sub.durationMonths} month${sub.durationMonths>1?'s':''} plan</p>
+    </div>
+    <div class="msg-body">
+      <div class="detail-head-card">
+        <div class="detail-avatar">${initials}</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14.5px;">${sub.phone || 'No phone on file'}</div>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${sub.address || 'No address on file'}</div>
+        </div>
+        <span class="status-pill ${sub.status}">${sub.status}</span>
+      </div>
+      <div class="detail-stats">
+        <div class="detail-stat"><div class="n">${delivered}</div><div class="l">Delivered</div></div>
+        <div class="detail-stat"><div class="n">${missed}</div><div class="l">Missed</div></div>
+        <div class="detail-stat"><div class="n">${pending}</div><div class="l">Upcoming</div></div>
+      </div>
+      <div class="detail-section-label">Delivery history</div>
+      <div id="detailDeliveryList"></div>
+    </div>
+  `;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  modal.querySelector('#detailCloseBtn').addEventListener('click', () => backdrop.remove());
+
+  const listWrap = modal.querySelector('#detailDeliveryList');
+  if (!list.length){
+    listWrap.innerHTML = '<div class="empty">No deliveries recorded yet.</div>';
+  } else {
+    list.slice().reverse().forEach(d => listWrap.appendChild(deliveryRow(d)));
+  }
+}
+
+/* ================= Browser Notifications ================= */
+const NOTIFY_STORAGE_KEY = 'hb_notified_delivery_ids';
+function getNotifiedToday(){
+  try {
+    const raw = localStorage.getItem(NOTIFY_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : { date: '', ids: [] };
+    if (parsed.date !== isoDate(new Date())) return { date: isoDate(new Date()), ids: [] };
+    return parsed;
+  } catch { return { date: isoDate(new Date()), ids: [] }; }
+}
+function markNotified(ids){
+  const state = getNotifiedToday();
+  state.ids = Array.from(new Set([...state.ids, ...ids]));
+  localStorage.setItem(NOTIFY_STORAGE_KEY, JSON.stringify(state));
+}
+
+function checkBrowserNotifications(dueTodayList){
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const state = getNotifiedToday();
+  const fresh = dueTodayList.filter(d => !state.ids.includes(d.id));
+  if (!fresh.length) return;
+  if (fresh.length === 1){
+    const d = fresh[0];
+    new Notification('🌸 Hanabee delivery due today', { body: `${d.subscriberName} — ${d.product}${d.timeSlot ? ' (' + d.timeSlot + ')' : ''}` });
+  } else {
+    new Notification('🌸 Hanabee — deliveries due today', { body: `${fresh.length} deliveries scheduled for today. Open the app to see the list.` });
+  }
+  markNotified(fresh.map(d => d.id));
+}
+
+document.getElementById('notifyBtn').addEventListener('click', () => {
+  if (typeof Notification === 'undefined'){
+    toast('Notifications are not supported in this browser');
+    return;
+  }
+  if (Notification.permission === 'granted'){
+    toast('Notifications are already enabled for this browser');
+    return;
+  }
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted'){
+      toast('Notifications enabled — you\'ll be alerted about today\'s deliveries while this tab is open');
+      new Notification('🌸 Hanabee notifications enabled', { body: 'You\'ll get an alert here whenever there are deliveries due today.' });
+      renderDashboard();
+    } else {
+      toast('Notifications permission was not granted');
+    }
+  });
+});
+
+// re-check every 30 minutes in case the tab stays open across midnight/into the day
+setInterval(() => { if (appInited) renderDashboard(); }, 30 * 60 * 1000);
 </script>
 </body>
 </html>
