@@ -134,6 +134,7 @@
   .badge.biweekly{background:var(--bloom-soft);color:var(--bloom);}
   .badge.today{background:#fbe7c9;color:var(--amber);}
   .badge.overdue{background:#f6ded7;color:var(--danger);}
+  .badge.location{background:#e8e2f5;color:#6b4fa0;}
 
   .d-icons{display:flex;gap:6px;flex-shrink:0;}
   .icon-btn{
@@ -464,6 +465,11 @@
             <option value="14">Biweekly</option>
             <option value="30">Monthly</option>
           </select>
+          <select id="dashFilterLocation">
+            <option value="">All locations</option>
+            <option value="Dommasandra">📍 Dommasandra</option>
+            <option value="Wilson Garden">📍 Wilson Garden</option>
+          </select>
           <button type="button" class="link-btn" id="dashFilterClear">Clear filters</button>
         </div>
       </section>
@@ -502,6 +508,11 @@
             <option value="delivered">Delivered</option>
             <option value="missed">Missed</option>
           </select>
+          <select id="historyFilterLocation">
+            <option value="">All locations</option>
+            <option value="Dommasandra">📍 Dommasandra</option>
+            <option value="Wilson Garden">📍 Wilson Garden</option>
+          </select>
           <input type="month" id="historyFilterMonth">
           <button type="button" class="btn btn-ghost" id="historyExportBtn" style="border-color:var(--line);color:var(--moss-deep);">Export CSV</button>
         </div>
@@ -522,6 +533,10 @@
       <section class="panel">
         <div class="panel-head"><h2>Subscribers by cadence</h2></div>
         <div id="analyticsByCadence"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Subscribers by dispatch location</h2></div>
+        <div id="analyticsByLocation"></div>
       </section>
       <section class="panel">
         <div class="panel-head"><h2>Delivery outcomes (all-time)</h2></div>
@@ -564,7 +579,7 @@
         <div style="overflow-x:auto;">
         <table id="subTable">
           <thead>
-            <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Next delivery</th><th>Status</th><th></th></tr>
+            <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Location</th><th>Next delivery</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="subTableBody"></tbody>
         </table>
@@ -629,6 +644,16 @@
               <button type="button" class="chip" data-value="3">3 months</button>
               <button type="button" class="chip" data-value="6">6 months</button>
             </div>
+          </div>
+
+          <div class="form-section">
+            <span class="form-section-label">Dispatch location</span>
+            <input type="hidden" id="f_location" value="Dommasandra">
+            <div class="chip-grid" id="locationChips">
+              <button type="button" class="chip" data-value="Dommasandra">📍 Dommasandra</button>
+              <button type="button" class="chip" data-value="Wilson Garden">📍 Wilson Garden</button>
+            </div>
+            <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 0;">Which point should dispatch this subscriber's flowers.</p>
           </div>
 
           <div class="form-section">
@@ -965,8 +990,12 @@ document.getElementById('cadenceChips').querySelectorAll('.chip').forEach(chip =
 document.getElementById('durationChips').querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => setChipValue('f_duration', 'durationChips', chip.dataset.value));
 });
+document.getElementById('locationChips').querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => setChipValue('f_location', 'locationChips', chip.dataset.value));
+});
 setChipValue('f_cadence', 'cadenceChips', '7');
 setChipValue('f_duration', 'durationChips', '1');
+setChipValue('f_location', 'locationChips', 'Dommasandra');
 
 document.getElementById('f_timeslot').addEventListener('change', (e) => {
   const customInput = document.getElementById('f_timeslot_custom');
@@ -992,7 +1021,7 @@ function addMonths(d, n){
   return x;
 }
 
-async function generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot){
+async function generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation){
   const totalCount = planDeliveryCount(cadenceDays, durationMonths);
   const batch = db.batch();
   for (let i = 0; i < totalCount; i++){
@@ -1004,6 +1033,7 @@ async function generateDeliveries(subId, name, product, cadenceDays, startDate, 
       product, cadenceDays,
       dueDate: isoDate(dueDate),
       timeSlot: timeSlot || '',
+      dispatchLocation: dispatchLocation || 'Dommasandra',
       status: 'pending'
     });
   }
@@ -1021,6 +1051,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const durationMonths = parseInt(document.getElementById('f_duration').value, 10);
   const startDateStr = document.getElementById('f_start').value;
   const timeSlot = getTimeSlotValue();
+  const dispatchLocation = document.getElementById('f_location').value;
   if (!name || !startDateStr) return;
   if (!product){ toast('Please select a product'); return; }
 
@@ -1030,7 +1061,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Saving…';
 
   try {
-    await saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot });
+    await saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation });
   } catch (err){
     console.error('Save subscriber failed:', err);
     toast('Something went wrong saving — check console / Firestore rules');
@@ -1040,7 +1071,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   }
 });
 
-async function saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot }){
+async function saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation }){
   const startDate = new Date(startDateStr + 'T00:00:00');
   const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + durationMonths);
@@ -1056,7 +1087,7 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
 
     await db.collection(SUBSCRIBERS).doc(subId).update({
       name, phone, address, product, cadenceDays, durationMonths,
-      startDate: isoDate(startDate), timeSlot: timeSlot || ''
+      startDate: isoDate(startDate), timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra'
     });
 
     if (clearHistory){
@@ -1065,7 +1096,7 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
       const wipeBatch = db.batch();
       all.forEach(d => wipeBatch.delete(db.collection(DELIVERIES).doc(d.id)));
       if (all.length) await wipeBatch.commit();
-      const deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
+      const deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
       if (wasInactiveStatus) await db.collection(SUBSCRIBERS).doc(subId).update({ status: 'active' });
       toast(`Cleared history for ${name} — fresh schedule of ${deliveryCount} deliveries`);
       exitEditMode();
@@ -1080,18 +1111,18 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
       const delBatch = db.batch();
       pending.forEach(d => delBatch.delete(db.collection(DELIVERIES).doc(d.id)));
       await delBatch.commit();
-      deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
+      deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
     } else {
       // just keep names/product in sync on pending deliveries
       const pending = deliveries.filter(d => d.subscriberId === subId && d.status === 'pending');
       const syncBatch = db.batch();
-      pending.forEach(d => syncBatch.update(db.collection(DELIVERIES).doc(d.id), { subscriberName: name, product, timeSlot: timeSlot || '' }));
+      pending.forEach(d => syncBatch.update(db.collection(DELIVERIES).doc(d.id), { subscriberName: name, product, timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra' }));
       if (pending.length) await syncBatch.commit();
       deliveryCount = pending.length;
       // a completed/cancelled subscriber with a still-future end date but no pending deliveries
       // (e.g. plan wasn't actually finished when marked complete) gets a fresh schedule too
       if (wasInactiveStatus && deliveryCount === 0 && endDate > new Date()){
-        deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot);
+        deliveryCount = await generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
       }
     }
 
@@ -1112,10 +1143,10 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
   // ----- ADD MODE -----
   const subRef = await db.collection(SUBSCRIBERS).add({
     name, phone, address, product, cadenceDays, durationMonths,
-    startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '',
+    startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot);
+  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
 
   toast(`Saved ${name} — ${count} deliveries scheduled`);
   document.getElementById('addForm').reset();
@@ -1133,6 +1164,7 @@ function exitEditMode(){
   document.getElementById('f_start').value = isoDate(new Date());
   setChipValue('f_cadence', 'cadenceChips', '7');
   setChipValue('f_duration', 'durationChips', '1');
+  setChipValue('f_location', 'locationChips', 'Dommasandra');
   if (products.length) setChipValue('f_product', 'productChips', products[0]);
   document.getElementById('addFormTitle').textContent = 'Add a subscriber';
 }
@@ -1148,6 +1180,7 @@ function openEditForm(sub){
   setChipValue('f_product', 'productChips', sub.product);
   setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
   setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
+  setChipValue('f_location', 'locationChips', sub.dispatchLocation || 'Dommasandra');
   document.getElementById('f_start').value = sub.startDate;
   const slotSel = document.getElementById('f_timeslot');
   const knownSlots = Array.from(slotSel.options).map(o => o.value);
@@ -1202,7 +1235,7 @@ function deliveryRow(d){
   main.className = 'd-main';
   const cadenceLabel = d.cadenceDays === 7 ? 'weekly' : d.cadenceDays === 14 ? 'biweekly' : 'monthly';
   main.innerHTML = `<div class="d-name">${d.subscriberName}</div>
-    <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span>${d.timeSlot ? ' · ' + d.timeSlot : ''}</div>`;
+    <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span>${d.timeSlot ? ' · ' + d.timeSlot : ''}${d.dispatchLocation ? ` · <span class="badge location">📍 ${d.dispatchLocation}</span>` : ''}</div>`;
 
   const dateEl = document.createElement('div');
   dateEl.className = 'd-date';
@@ -1274,6 +1307,7 @@ function openRenewForm(sub){
   setChipValue('f_product', 'productChips', sub.product);
   setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
   setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
+  setChipValue('f_location', 'locationChips', sub.dispatchLocation || 'Dommasandra');
   document.getElementById('f_start').value = isoDate(new Date());
   document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
   document.getElementById('addFormCancelEdit').style.display = 'none';
@@ -1292,9 +1326,11 @@ function renderDashboard(){
   const searchTerm = (document.getElementById('dashSearch').value || '').toLowerCase().trim();
   const filterProduct = document.getElementById('dashFilterProduct').value;
   const filterCadence = document.getElementById('dashFilterCadence').value;
+  const filterLocation = document.getElementById('dashFilterLocation').value;
   if (searchTerm) relevant = relevant.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(searchTerm));
   if (filterProduct) relevant = relevant.filter(d => d.product === filterProduct);
   if (filterCadence) relevant = relevant.filter(d => String(d.cadenceDays) === filterCadence);
+  if (filterLocation) relevant = relevant.filter(d => d.dispatchLocation === filterLocation);
 
   const dueTodayList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) === 0);
   const dueWeekList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) > 0 && d.dueDate < weekEnd)
@@ -1371,11 +1407,11 @@ function renderSubscribers(){
   const search = (document.getElementById('subSearch').value || '').toLowerCase();
   body.innerHTML = '';
   const filtered = subscribers
-    .filter(s => (s.name + ' ' + s.product).toLowerCase().includes(search))
+    .filter(s => (s.name + ' ' + s.product + ' ' + (s.dispatchLocation || '')).toLowerCase().includes(search))
     .sort((a,b) => a.name.localeCompare(b.name));
 
   if (!filtered.length){
-    body.innerHTML = `<tr><td colspan="6" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="7" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
     return;
   }
 
@@ -1387,6 +1423,7 @@ function renderSubscribers(){
       <td><strong>${s.name}</strong>${s.phone ? `<div class="d-sub mono">${s.phone}</div>` : ''}</td>
       <td>${s.product}</td>
       <td>${cadenceLabel}</td>
+      <td>${s.dispatchLocation ? `<span class="badge location">📍 ${s.dispatchLocation}</span>` : '<span class="d-sub">—</span>'}</td>
       <td>${nd ? fmtDate(nd.dueDate) + ' · ' + relLabel(nd.dueDate) : '<span class="d-sub">—</span>'}</td>
       <td><span class="status-pill ${s.status}">${s.status}</span></td>
       <td></td>
@@ -1451,10 +1488,12 @@ document.getElementById('subSearch').addEventListener('input', renderSubscribers
 document.getElementById('dashSearch').addEventListener('input', renderDashboard);
 document.getElementById('dashFilterProduct').addEventListener('change', renderDashboard);
 document.getElementById('dashFilterCadence').addEventListener('change', renderDashboard);
+document.getElementById('dashFilterLocation').addEventListener('change', renderDashboard);
 document.getElementById('dashFilterClear').addEventListener('click', () => {
   document.getElementById('dashSearch').value = '';
   document.getElementById('dashFilterProduct').value = '';
   document.getElementById('dashFilterCadence').value = '';
+  document.getElementById('dashFilterLocation').value = '';
   renderDashboard();
 });
 
@@ -1824,10 +1863,10 @@ function downloadCSV(filename, headers, rows){
 }
 
 document.getElementById('subscribersExportBtn').addEventListener('click', () => {
-  const headers = ['Name','Phone','Address','Product','Cadence','Plan Length (months)','Start Date','Time Slot','Status'];
+  const headers = ['Name','Phone','Address','Product','Cadence','Plan Length (months)','Start Date','Time Slot','Dispatch Location','Status'];
   const rows = subscribers.map(s => [
     s.name, s.phone || '', s.address || '', s.product, cadenceLabelFor(s.cadenceDays),
-    s.durationMonths, s.startDate, s.timeSlot || '', s.status
+    s.durationMonths, s.startDate, s.timeSlot || '', s.dispatchLocation || '', s.status
   ]);
   downloadCSV(`hanabee-subscribers-${isoDate(new Date())}.csv`, headers, rows);
 });
@@ -1838,11 +1877,13 @@ function renderHistory(){
   const search = (document.getElementById('historySearch').value || '').toLowerCase().trim();
   const statusFilter = document.getElementById('historyFilterStatus').value;
   const monthFilter = document.getElementById('historyFilterMonth').value; // YYYY-MM
+  const locationFilter = document.getElementById('historyFilterLocation').value;
 
   let resolved = deliveries.filter(d => d.status === 'delivered' || d.status === 'missed');
   if (search) resolved = resolved.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(search));
   if (statusFilter) resolved = resolved.filter(d => d.status === statusFilter);
   if (monthFilter) resolved = resolved.filter(d => isoDate(d.dueDate).startsWith(monthFilter));
+  if (locationFilter) resolved = resolved.filter(d => d.dispatchLocation === locationFilter);
   resolved = resolved.sort((a,b) => b.dueDate - a.dueDate);
 
   listEl.innerHTML = '';
@@ -1853,6 +1894,7 @@ function renderHistory(){
   resolved.forEach(d => listEl.appendChild(deliveryRow(d)));
 }
 
+document.getElementById('historyFilterLocation').addEventListener('change', renderHistory);
 document.getElementById('historySearch').addEventListener('input', renderHistory);
 document.getElementById('historyFilterStatus').addEventListener('change', renderHistory);
 document.getElementById('historyFilterMonth').addEventListener('change', renderHistory);
@@ -1860,16 +1902,18 @@ document.getElementById('historyExportBtn').addEventListener('click', () => {
   const search = (document.getElementById('historySearch').value || '').toLowerCase().trim();
   const statusFilter = document.getElementById('historyFilterStatus').value;
   const monthFilter = document.getElementById('historyFilterMonth').value;
+  const locationFilter = document.getElementById('historyFilterLocation').value;
   let resolved = deliveries.filter(d => d.status === 'delivered' || d.status === 'missed');
   if (search) resolved = resolved.filter(d => (d.subscriberName + ' ' + d.product).toLowerCase().includes(search));
   if (statusFilter) resolved = resolved.filter(d => d.status === statusFilter);
   if (monthFilter) resolved = resolved.filter(d => isoDate(d.dueDate).startsWith(monthFilter));
+  if (locationFilter) resolved = resolved.filter(d => d.dispatchLocation === locationFilter);
   resolved = resolved.sort((a,b) => b.dueDate - a.dueDate);
 
-  const headers = ['Subscriber','Product','Cadence','Due Date','Time Slot','Status','Has Photo'];
+  const headers = ['Subscriber','Product','Cadence','Due Date','Time Slot','Dispatch Location','Status','Has Photo'];
   const rows = resolved.map(d => [
     d.subscriberName, d.product, cadenceLabelFor(d.cadenceDays), fmtDate(d.dueDate),
-    d.timeSlot || '', d.status, d.photoUrl ? 'Yes' : 'No'
+    d.timeSlot || '', d.dispatchLocation || '', d.status, d.photoUrl ? 'Yes' : 'No'
   ]);
   downloadCSV(`hanabee-delivery-history-${isoDate(new Date())}.csv`, headers, rows);
 });
@@ -1932,6 +1976,21 @@ function renderAnalytics(){
   cadenceEl.appendChild(analyticsBarRow('Biweekly', byCadence[14], cadenceMax));
   cadenceEl.appendChild(analyticsBarRow('Monthly', byCadence[30], cadenceMax));
 
+  // By dispatch location
+  const byLocation = {};
+  activeSubs.forEach(s => {
+    const loc = s.dispatchLocation || 'Unassigned';
+    byLocation[loc] = (byLocation[loc] || 0) + 1;
+  });
+  const locationEl = document.getElementById('analyticsByLocation');
+  locationEl.innerHTML = '';
+  const locationEntries = Object.entries(byLocation).sort((a,b) => b[1]-a[1]);
+  if (!locationEntries.length){ locationEl.innerHTML = '<div class="empty">No active subscribers yet.</div>'; }
+  else {
+    const locMax = Math.max(...locationEntries.map(e => e[1]));
+    locationEntries.forEach(([name, count]) => locationEl.appendChild(analyticsBarRow('📍 ' + name, count, locMax)));
+  }
+
   // Outcomes
   const outcomesEl = document.getElementById('analyticsOutcomes');
   outcomesEl.innerHTML = '';
@@ -1975,7 +2034,7 @@ function openSubscriberDetail(sub){
     <div class="msg-modal-head">
       <button class="msg-modal-close" id="detailCloseBtn">✕</button>
       <h3>${sub.name}</h3>
-      <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · ${sub.durationMonths} month${sub.durationMonths>1?'s':''} plan</p>
+      <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · ${sub.durationMonths} month${sub.durationMonths>1?'s':''} plan${sub.dispatchLocation ? ' · 📍 ' + sub.dispatchLocation : ''}</p>
     </div>
     <div class="msg-body">
       <div class="detail-head-card">
