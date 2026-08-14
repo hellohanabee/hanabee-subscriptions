@@ -148,6 +148,12 @@
   .icon-btn.photo.has-photo{border-color:var(--bloom);padding:0;}
   .icon-btn.photo img{width:100%;height:100%;object-fit:cover;}
   .icon-btn.photo:hover{border-color:var(--bloom);color:var(--bloom);}
+  .icon-btn.reschedule{color:var(--amber);}
+  .icon-btn.reschedule:hover{background:#fbf3e2;border-color:var(--amber);}
+  .resched-tag{
+    display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--amber);background:#fbf3e2;border-radius:100px;padding:2px 7px;margin-left:6px;vertical-align:middle;
+  }
 
   /* Premium message modal */
   .msg-modal-backdrop{
@@ -259,6 +265,11 @@
   .detail-stat .n{font-family:'Fraunces',serif;font-size:22px;color:var(--moss-deep);}
   .detail-stat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-top:2px;}
   .detail-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--leaf);margin:18px 0 8px;}
+  .order-card{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.15s;
+  }
+  .order-card:hover{border-color:var(--leaf);box-shadow:0 2px 8px -3px rgba(92,122,82,0.25);transform:translateY(-1px);}
 
   /* Subscriber table */
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
@@ -698,14 +709,33 @@ const DEFAULT_PRODUCTS = ["Floral Harmony", "Essence of the Earth", "Chrysanthem
 const authGate = document.getElementById('authGate');
 const appEl = document.getElementById('app');
 const authError = document.getElementById('authError');
+const googleSignInBtn = document.getElementById('googleSignIn');
+let signInInProgress = false;
 
-document.getElementById('googleSignIn').addEventListener('click', () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
+googleSignInBtn.addEventListener('click', () => {
+  if (signInInProgress) return; // prevents the double-click that causes auth/cancelled-popup-request
+  signInInProgress = true;
+  googleSignInBtn.disabled = true;
   authError.classList.add('hidden');
-  auth.signInWithPopup(provider).catch(err => {
-    authError.textContent = err.message;
-    authError.classList.remove('hidden');
-  });
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .catch(err => {
+      if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-request-in-progress'){
+        return; // benign — a second popup attempt was blocked, first one is still handling it
+      }
+      if (err.code === 'auth/popup-blocked'){
+        // fall back to a full-page redirect if the browser blocked the popup
+        auth.signInWithRedirect(provider);
+        return;
+      }
+      authError.textContent = err.message;
+      authError.classList.remove('hidden');
+    })
+    .finally(() => {
+      signInInProgress = false;
+      googleSignInBtn.disabled = false;
+    });
 });
 
 document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
@@ -1176,10 +1206,21 @@ function deliveryRow(d){
 
   const dateEl = document.createElement('div');
   dateEl.className = 'd-date';
-  dateEl.innerHTML = `${fmtDate(d.dueDate)}<span class="rel">${relLabel(d.dueDate)}</span>`;
+  const relText = d.status === 'delivered' ? 'Delivered' : d.status === 'missed' ? 'Missed' : relLabel(d.dueDate);
+  const reschedTag = d.originalDueDate ? `<span class="resched-tag" title="Originally ${fmtDate(new Date(d.originalDueDate + 'T00:00:00'))}">rescheduled</span>` : '';
+  dateEl.innerHTML = `${fmtDate(d.dueDate)}${reschedTag}<span class="rel">${relText}</span>`;
 
   const iconGroup = document.createElement('div');
   iconGroup.className = 'd-icons';
+
+  if (d.status === 'pending'){
+    const reschedBtn = document.createElement('button');
+    reschedBtn.className = 'icon-btn reschedule';
+    reschedBtn.title = 'Reschedule this delivery';
+    reschedBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="m9.5 16 2-2 2 2M11.5 14v5"/></svg>`;
+    reschedBtn.addEventListener('click', (e) => { e.stopPropagation(); openRescheduleModal(d); });
+    iconGroup.appendChild(reschedBtn);
+  }
 
   const photoBtn = document.createElement('button');
   photoBtn.className = 'icon-btn photo' + (d.photoUrl ? ' has-photo' : '');
@@ -1612,6 +1653,70 @@ function openMessageModal(sub, delivery){
 }
 
 /* ================= Delivery Photo Modal ================= */
+/* ================= Reschedule Delivery Modal ================= */
+function openRescheduleModal(delivery){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'msg-modal-backdrop';
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+  const currentDate = isoDate(delivery.dueDate);
+  const modal = document.createElement('div');
+  modal.className = 'msg-modal';
+  modal.style.width = 'min(420px,100%)';
+  modal.innerHTML = `
+    <div class="msg-modal-head">
+      <button class="msg-modal-close" id="reschedCloseBtn">✕</button>
+      <h3>📅 Reschedule delivery</h3>
+      <p>${delivery.subscriberName} · ${delivery.product} · currently ${fmtDate(delivery.dueDate)}</p>
+    </div>
+    <div class="msg-body">
+      <div class="field" style="margin-bottom:14px;">
+        <label>New delivery date</label>
+        <input type="date" id="reschedDate" value="${currentDate}">
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Reason (optional)</label>
+        <input type="text" id="reschedNote" placeholder="e.g. Customer unavailable that day">
+      </div>
+      <div class="msg-actions">
+        <button class="copy-btn" id="reschedSaveBtn">Save new date</button>
+        <button class="copy-btn secondary" id="reschedCancelBtn">Cancel</button>
+      </div>
+      <p style="font-size:12px;color:var(--ink-soft);margin:14px 0 0;">This only moves this one delivery — the rest of the subscriber's schedule stays as planned.</p>
+    </div>
+  `;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  modal.querySelector('#reschedCloseBtn').addEventListener('click', () => backdrop.remove());
+  modal.querySelector('#reschedCancelBtn').addEventListener('click', () => backdrop.remove());
+
+  modal.querySelector('#reschedSaveBtn').addEventListener('click', async () => {
+    const newDateStr = modal.querySelector('#reschedDate').value;
+    const note = modal.querySelector('#reschedNote').value.trim();
+    if (!newDateStr){ toast('Please pick a date'); return; }
+    if (newDateStr === currentDate){ backdrop.remove(); return; }
+
+    const saveBtn = modal.querySelector('#reschedSaveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+    try {
+      const update = {
+        dueDate: newDateStr,
+        originalDueDate: delivery.originalDueDate || currentDate,
+      };
+      if (note) update.rescheduleNote = note;
+      await db.collection(DELIVERIES).doc(delivery.id).update(update);
+      toast(`Moved to ${fmtDate(new Date(newDateStr + 'T00:00:00'))}`);
+      backdrop.remove();
+    } catch (err){
+      console.error('Reschedule failed:', err);
+      toast('Could not reschedule — check console / Firestore rules');
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save new date';
+    }
+  });
+}
+
 function openPhotoModal(delivery){
   const backdrop = document.createElement('div');
   backdrop.className = 'msg-modal-backdrop';
@@ -1853,6 +1958,13 @@ function openSubscriberDetail(sub){
   const pending = list.filter(d => d.status === 'pending').length;
   const initials = sub.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
 
+  // Find this customer's other subscription orders (matched by phone, falling back to name)
+  const otherOrders = subscribers.filter(s => {
+    if (s.id === sub.id) return false;
+    if (sub.phone && s.phone) return s.phone === sub.phone;
+    return s.name.trim().toLowerCase() === sub.name.trim().toLowerCase();
+  }).sort((a,b) => (b.startDate || '').localeCompare(a.startDate || ''));
+
   const backdrop = document.createElement('div');
   backdrop.className = 'msg-modal-backdrop';
   backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
@@ -1879,13 +1991,38 @@ function openSubscriberDetail(sub){
         <div class="detail-stat"><div class="n">${missed}</div><div class="l">Missed</div></div>
         <div class="detail-stat"><div class="n">${pending}</div><div class="l">Upcoming</div></div>
       </div>
-      <div class="detail-section-label">Delivery history</div>
+      ${otherOrders.length ? `
+        <div class="detail-section-label">Other subscription orders (${otherOrders.length})</div>
+        <div id="detailOtherOrders"></div>
+      ` : ''}
+      <div class="detail-section-label">Delivery history — this order</div>
       <div id="detailDeliveryList"></div>
     </div>
   `;
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
   modal.querySelector('#detailCloseBtn').addEventListener('click', () => backdrop.remove());
+
+  if (otherOrders.length){
+    const ordersWrap = modal.querySelector('#detailOtherOrders');
+    otherOrders.forEach(o => {
+      const oList = subscriberDeliveries(o.id);
+      const oDelivered = oList.filter(d => d.status === 'delivered').length;
+      const card = document.createElement('div');
+      card.className = 'order-card';
+      card.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:13.5px;">${o.product}</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">
+            ${cadenceLabelFor(o.cadenceDays)} · ${o.durationMonths} month${o.durationMonths>1?'s':''} · started ${o.startDate ? fmtDate(new Date(o.startDate + 'T00:00:00')) : '—'} · ${oDelivered}/${oList.length} delivered
+          </div>
+        </div>
+        <span class="status-pill ${o.status}">${o.status}</span>
+      `;
+      card.addEventListener('click', () => { backdrop.remove(); openSubscriberDetail(o); });
+      ordersWrap.appendChild(card);
+    });
+  }
 
   const listWrap = modal.querySelector('#detailDeliveryList');
   if (!list.length){
