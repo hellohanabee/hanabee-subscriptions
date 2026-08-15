@@ -493,6 +493,11 @@
       </section>
 
       <section class="panel">
+        <div class="panel-head"><h2>Due tomorrow</h2></div>
+        <div id="dueTomorrow"></div>
+      </section>
+
+      <section class="panel">
         <div class="panel-head"><h2>Due this week</h2></div>
         <div id="dueWeek"></div>
       </section>
@@ -1348,7 +1353,8 @@ function renderDashboard(){
   if (filterLocation) relevant = relevant.filter(d => d.dispatchLocation === filterLocation);
 
   const dueTodayList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) === 0);
-  const dueWeekList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) > 0 && d.dueDate < weekEnd)
+  const dueTomorrowList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) === 1);
+  const dueWeekList = relevant.filter(d => d.status === 'pending' && daysBetween(today, d.dueDate) > 1 && d.dueDate < weekEnd)
     .sort((a,b) => a.dueDate - b.dueDate);
   const overdueList = relevant.filter(d => d.status === 'missed' || (d.status === 'pending' && d.dueDate < today))
     .sort((a,b) => a.dueDate - b.dueDate);
@@ -1358,6 +1364,7 @@ function renderDashboard(){
   const stats = [
     { label: 'Active subscribers', num: subscribers.filter(s=>s.status==='active').length, cls:'' },
     { label: 'Due today', num: dueTodayList.length, cls:'' },
+    { label: 'Due tomorrow', num: dueTomorrowList.length, cls:'' },
     { label: 'Due this week', num: dueWeekList.length, cls:'warn' },
     { label: 'Overdue / missed', num: overdueList.length, cls:'danger' },
   ];
@@ -1369,6 +1376,7 @@ function renderDashboard(){
   });
 
   fillList('dueToday', dueTodayList, 'Nothing due today. 🌿');
+  fillList('dueTomorrow', dueTomorrowList, 'Nothing due tomorrow.');
   fillList('dueWeek', dueWeekList, 'Nothing else scheduled for the rest of this week.');
   fillList('dueOverdue', overdueList, 'Nothing overdue — all caught up.');
 
