@@ -210,8 +210,8 @@
   /* Photo modal */
   .photo-modal-body{padding:22px 26px 26px;text-align:center;}
   .photo-preview{
-    width:100%;max-height:340px;border-radius:14px;object-fit:cover;margin-bottom:16px;
-    border:1px solid var(--line);background:var(--ivory);
+    width:100%;max-height:420px;border-radius:14px;object-fit:contain;margin-bottom:16px;
+    border:1px solid var(--line);background:var(--ivory);cursor:zoom-in;display:block;
   }
   .photo-drop{
     border:2px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;
@@ -220,6 +220,19 @@
   .photo-drop:hover{border-color:var(--leaf);background:#f7faf5;color:var(--leaf);}
   .photo-drop svg{width:28px;height:28px;margin-bottom:8px;}
   .photo-uploading{color:var(--ink-soft);font-size:13px;padding:12px;}
+
+  /* Photo zoom lightbox */
+  .photo-lightbox{
+    position:fixed;inset:0;background:rgba(15,18,12,0.92);z-index:120;
+    display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;
+  }
+  .photo-lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;cursor:default;}
+  .photo-lightbox-close{
+    position:absolute;top:20px;right:24px;width:38px;height:38px;border-radius:50%;
+    background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .photo-lightbox-close:hover{background:rgba(255,255,255,0.28);}
 
   .empty{color:var(--ink-soft);font-size:13.5px;padding:20px 4px;text-align:center;}
 
@@ -1318,7 +1331,9 @@ function openRenewForm(sub){
 /* ---------------- Dashboard ---------------- */
 function renderDashboard(){
   const today = startOfDay(new Date());
-  const weekEnd = addDays(today, 7);
+  // "This week" = the current calendar week (Sun–Sat), matching the Calendar tab's own week rows —
+  // not a rolling 7-day window, so a date in next week's row never shows here.
+  const weekEnd = addDays(today, 7 - today.getDay());
 
   const activeSubIds = new Set(subscribers.filter(s => s.status === 'active').map(s => s.id));
   let relevant = deliveries.filter(d => activeSubIds.has(d.subscriberId));
@@ -1354,7 +1369,7 @@ function renderDashboard(){
   });
 
   fillList('dueToday', dueTodayList, 'Nothing due today. 🌿');
-  fillList('dueWeek', dueWeekList, 'No deliveries scheduled in the next 7 days.');
+  fillList('dueWeek', dueWeekList, 'Nothing else scheduled for the rest of this week.');
   fillList('dueOverdue', overdueList, 'Nothing overdue — all caught up.');
 
   checkBrowserNotifications(dueTodayList);
@@ -1756,6 +1771,17 @@ function openRescheduleModal(delivery){
   });
 }
 
+function openPhotoLightbox(url){
+  const box = document.createElement('div');
+  box.className = 'photo-lightbox';
+  box.innerHTML = `
+    <button class="photo-lightbox-close">✕</button>
+    <img src="${url}" alt="">
+  `;
+  box.addEventListener('click', (e) => { if (e.target === box || e.target.closest('.photo-lightbox-close')) box.remove(); });
+  document.body.appendChild(box);
+}
+
 function openPhotoModal(delivery){
   const backdrop = document.createElement('div');
   backdrop.className = 'msg-modal-backdrop';
@@ -1784,6 +1810,8 @@ function openPhotoModal(delivery){
       const img = document.createElement('img');
       img.src = delivery.photoUrl;
       img.className = 'photo-preview';
+      img.title = 'Click to zoom';
+      img.addEventListener('click', () => openPhotoLightbox(delivery.photoUrl));
       body.appendChild(img);
 
       const actions = document.createElement('div');
