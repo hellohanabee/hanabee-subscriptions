@@ -129,12 +129,14 @@
   .d-date{font-size:13px;font-weight:600;text-align:right;white-space:nowrap;}
   .d-date .rel{display:block;font-size:11px;font-weight:500;color:var(--ink-soft);margin-top:1px;}
   .badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
-    padding:3px 8px;border-radius:100px;}
+    padding:3px 8px;border-radius:100px;white-space:nowrap;display:inline-flex;align-items:center;gap:3px;}
   .badge.weekly{background:#e4ecdd;color:var(--leaf);}
   .badge.biweekly{background:var(--bloom-soft);color:var(--bloom);}
   .badge.today{background:#fbe7c9;color:var(--amber);}
   .badge.overdue{background:#f6ded7;color:var(--danger);}
   .badge.location{background:#e8e2f5;color:#6b4fa0;}
+  .badge.source-online{background:#d7ecf7;color:#1e6f8f;}
+  .badge.source-offline{background:#efe8da;color:#8a6a2f;}
 
   .d-icons{display:flex;gap:6px;flex-shrink:0;}
   .icon-btn{
@@ -288,8 +290,8 @@
   /* Subscriber table */
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);
-    padding:8px 10px;border-bottom:2px solid var(--line);}
-  td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+    padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap;}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap;}
   tr:last-child td{border-bottom:none;}
   .status-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;text-transform:capitalize;}
   .status-pill.active{background:#e4ecdd;color:var(--leaf);}
@@ -557,6 +559,10 @@
         <div id="analyticsByLocation"></div>
       </section>
       <section class="panel">
+        <div class="panel-head"><h2>Subscribers by order source</h2></div>
+        <div id="analyticsBySource"></div>
+      </section>
+      <section class="panel">
         <div class="panel-head"><h2>Delivery outcomes (all-time)</h2></div>
         <div id="analyticsOutcomes"></div>
       </section>
@@ -597,7 +603,7 @@
         <div style="overflow-x:auto;">
         <table id="subTable">
           <thead>
-            <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Location</th><th>Next delivery</th><th>Status</th><th></th></tr>
+            <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Location</th><th>Source</th><th>Next delivery</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="subTableBody"></tbody>
         </table>
@@ -675,6 +681,19 @@
           </div>
 
           <div class="form-section">
+            <span class="form-section-label">Order source</span>
+            <input type="hidden" id="f_orderSource" value="offline">
+            <div class="chip-grid" id="orderSourceChips">
+              <button type="button" class="chip" data-value="offline">📝 Offline / manual</button>
+              <button type="button" class="chip" data-value="online">🛒 Online (Shopify)</button>
+            </div>
+            <div class="field" id="shopifyOrderIdField" style="display:none;margin-top:12px;max-width:280px;">
+              <label>Shopify order ID</label>
+              <input type="text" id="f_shopifyOrderId" placeholder="e.g. #1042">
+            </div>
+          </div>
+
+          <div class="form-section">
             <span class="form-section-label">Schedule</span>
             <div class="form-grid">
               <div class="field">
@@ -736,7 +755,7 @@ const firebaseConfig = {
   appId: "1:1029145999512:web:400a12f93b04e540fcf8ed"
 };
 
-const ALLOWED_EMAILS = ["hello@hanabee.in", "hello.hanabee@gmail.com","sabnamrajoria@gmail.com"];
+const ALLOWED_EMAILS = ["hello@hanabee.in", "hello.hanabee@gmail.com", "sabnamrajoria@gmail.com"];
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -1011,9 +1030,16 @@ document.getElementById('durationChips').querySelectorAll('.chip').forEach(chip 
 document.getElementById('locationChips').querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => setChipValue('f_location', 'locationChips', chip.dataset.value));
 });
+document.getElementById('orderSourceChips').querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    setChipValue('f_orderSource', 'orderSourceChips', chip.dataset.value);
+    document.getElementById('shopifyOrderIdField').style.display = chip.dataset.value === 'online' ? 'block' : 'none';
+  });
+});
 setChipValue('f_cadence', 'cadenceChips', '7');
 setChipValue('f_duration', 'durationChips', '1');
 setChipValue('f_location', 'locationChips', 'Dommasandra');
+setChipValue('f_orderSource', 'orderSourceChips', 'offline');
 
 document.getElementById('f_timeslot').addEventListener('change', (e) => {
   const customInput = document.getElementById('f_timeslot_custom');
@@ -1070,8 +1096,11 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const startDateStr = document.getElementById('f_start').value;
   const timeSlot = getTimeSlotValue();
   const dispatchLocation = document.getElementById('f_location').value;
+  const orderSource = document.getElementById('f_orderSource').value;
+  const shopifyOrderId = document.getElementById('f_shopifyOrderId').value.trim();
   if (!name || !startDateStr) return;
   if (!product){ toast('Please select a product'); return; }
+  if (orderSource === 'online' && !shopifyOrderId){ toast('Please enter the Shopify order ID'); return; }
 
   const submitBtn = document.getElementById('addFormSubmitBtn');
   const originalBtnText = submitBtn.textContent;
@@ -1079,7 +1108,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   submitBtn.textContent = 'Saving…';
 
   try {
-    await saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation });
+    await saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation, orderSource, shopifyOrderId });
   } catch (err){
     console.error('Save subscriber failed:', err);
     toast('Something went wrong saving — check console / Firestore rules');
@@ -1089,7 +1118,7 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   }
 });
 
-async function saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation }){
+async function saveSubscriber({ name, phone, address, product, cadenceDays, durationMonths, startDateStr, timeSlot, dispatchLocation, orderSource, shopifyOrderId }){
   const startDate = new Date(startDateStr + 'T00:00:00');
   const endDate = new Date(startDate);
   endDate.setMonth(endDate.getMonth() + durationMonths);
@@ -1105,7 +1134,8 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
 
     await db.collection(SUBSCRIBERS).doc(subId).update({
       name, phone, address, product, cadenceDays, durationMonths,
-      startDate: isoDate(startDate), timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra'
+      startDate: isoDate(startDate), timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra',
+      orderSource: orderSource || 'offline', shopifyOrderId: orderSource === 'online' ? shopifyOrderId : ''
     });
 
     if (clearHistory){
@@ -1162,6 +1192,7 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
   const subRef = await db.collection(SUBSCRIBERS).add({
     name, phone, address, product, cadenceDays, durationMonths,
     startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra',
+    orderSource: orderSource || 'offline', shopifyOrderId: orderSource === 'online' ? shopifyOrderId : '',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
   const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
@@ -1183,6 +1214,9 @@ function exitEditMode(){
   setChipValue('f_cadence', 'cadenceChips', '7');
   setChipValue('f_duration', 'durationChips', '1');
   setChipValue('f_location', 'locationChips', 'Dommasandra');
+  setChipValue('f_orderSource', 'orderSourceChips', 'offline');
+  document.getElementById('shopifyOrderIdField').style.display = 'none';
+  document.getElementById('f_shopifyOrderId').value = '';
   if (products.length) setChipValue('f_product', 'productChips', products[0]);
   document.getElementById('addFormTitle').textContent = 'Add a subscriber';
 }
@@ -1199,6 +1233,9 @@ function openEditForm(sub){
   setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
   setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
   setChipValue('f_location', 'locationChips', sub.dispatchLocation || 'Dommasandra');
+  setChipValue('f_orderSource', 'orderSourceChips', sub.orderSource || 'offline');
+  document.getElementById('shopifyOrderIdField').style.display = (sub.orderSource === 'online') ? 'block' : 'none';
+  document.getElementById('f_shopifyOrderId').value = sub.shopifyOrderId || '';
   document.getElementById('f_start').value = sub.startDate;
   const slotSel = document.getElementById('f_timeslot');
   const knownSlots = Array.from(slotSel.options).map(o => o.value);
@@ -1326,6 +1363,9 @@ function openRenewForm(sub){
   setChipValue('f_cadence', 'cadenceChips', String(sub.cadenceDays));
   setChipValue('f_duration', 'durationChips', String(sub.durationMonths));
   setChipValue('f_location', 'locationChips', sub.dispatchLocation || 'Dommasandra');
+  setChipValue('f_orderSource', 'orderSourceChips', 'offline');
+  document.getElementById('shopifyOrderIdField').style.display = 'none';
+  document.getElementById('f_shopifyOrderId').value = '';
   document.getElementById('f_start').value = isoDate(new Date());
   document.getElementById('addFormSubmitBtn').textContent = 'Save subscriber & generate deliveries';
   document.getElementById('addFormCancelEdit').style.display = 'none';
@@ -1434,7 +1474,7 @@ function renderSubscribers(){
     .sort((a,b) => a.name.localeCompare(b.name));
 
   if (!filtered.length){
-    body.innerHTML = `<tr><td colspan="7" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="8" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
     return;
   }
 
@@ -1447,6 +1487,7 @@ function renderSubscribers(){
       <td>${s.product}</td>
       <td>${cadenceLabel}</td>
       <td>${s.dispatchLocation ? `<span class="badge location">📍 ${s.dispatchLocation}</span>` : '<span class="d-sub">—</span>'}</td>
+      <td>${s.orderSource === 'online' ? `<span class="badge source-online">🛒 Online${s.shopifyOrderId ? ' ' + s.shopifyOrderId : ''}</span>` : `<span class="badge source-offline">📝 Offline</span>`}</td>
       <td>${nd ? fmtDate(nd.dueDate) + ' · ' + relLabel(nd.dueDate) : '<span class="d-sub">—</span>'}</td>
       <td><span class="status-pill ${s.status}">${s.status}</span></td>
       <td></td>
@@ -1899,10 +1940,11 @@ function downloadCSV(filename, headers, rows){
 }
 
 document.getElementById('subscribersExportBtn').addEventListener('click', () => {
-  const headers = ['Name','Phone','Address','Product','Cadence','Plan Length (months)','Start Date','Time Slot','Dispatch Location','Status'];
+  const headers = ['Name','Phone','Address','Product','Cadence','Plan Length (months)','Start Date','Time Slot','Dispatch Location','Order Source','Shopify Order ID','Status'];
   const rows = subscribers.map(s => [
     s.name, s.phone || '', s.address || '', s.product, cadenceLabelFor(s.cadenceDays),
-    s.durationMonths, s.startDate, s.timeSlot || '', s.dispatchLocation || '', s.status
+    s.durationMonths, s.startDate, s.timeSlot || '', s.dispatchLocation || '',
+    s.orderSource === 'online' ? 'Online' : 'Offline', s.shopifyOrderId || '', s.status
   ]);
   downloadCSV(`hanabee-subscribers-${isoDate(new Date())}.csv`, headers, rows);
 });
@@ -2027,6 +2069,18 @@ function renderAnalytics(){
     locationEntries.forEach(([name, count]) => locationEl.appendChild(analyticsBarRow('📍 ' + name, count, locMax)));
   }
 
+  // By order source
+  const onlineCount = activeSubs.filter(s => s.orderSource === 'online').length;
+  const offlineCount = activeSubs.length - onlineCount;
+  const sourceEl = document.getElementById('analyticsBySource');
+  sourceEl.innerHTML = '';
+  if (!activeSubs.length){ sourceEl.innerHTML = '<div class="empty">No active subscribers yet.</div>'; }
+  else {
+    const sourceMax = Math.max(1, onlineCount, offlineCount);
+    sourceEl.appendChild(analyticsBarRow('🛒 Online (Shopify)', onlineCount, sourceMax));
+    sourceEl.appendChild(analyticsBarRow('📝 Offline / manual', offlineCount, sourceMax));
+  }
+
   // Outcomes
   const outcomesEl = document.getElementById('analyticsOutcomes');
   outcomesEl.innerHTML = '';
@@ -2079,7 +2133,12 @@ function openSubscriberDetail(sub){
           <div style="font-weight:700;font-size:14.5px;">${sub.phone || 'No phone on file'}</div>
           <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${sub.address || 'No address on file'}</div>
         </div>
-        <span class="status-pill ${sub.status}">${sub.status}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <span class="status-pill ${sub.status}">${sub.status}</span>
+          ${sub.orderSource === 'online'
+            ? `<span class="badge source-online">🛒 Online${sub.shopifyOrderId ? ' ' + sub.shopifyOrderId : ''}</span>`
+            : `<span class="badge source-offline">📝 Offline</span>`}
+        </div>
       </div>
       <div class="detail-stats">
         <div class="detail-stat"><div class="n">${delivered}</div><div class="l">Delivered</div></div>
