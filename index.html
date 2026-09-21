@@ -94,7 +94,7 @@
   }
   .tab-btn.active{color:var(--moss-deep);background:var(--paper);border:1px solid var(--line);border-bottom-color:var(--paper);}
 
-  main{padding:26px 32px 60px;max-width:1180px;margin:0 auto;}
+  main{padding:26px 32px 60px;max-width:1320px;margin:0 auto;}
 
   /* Dashboard stat row */
   .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:26px;}
@@ -104,6 +104,16 @@
   .stat-card .label{font-size:12.5px;color:var(--ink-soft);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;}
   .stat-card.warn .num{color:var(--amber);}
   .stat-card.danger .num{color:var(--danger);}
+
+  .dash-grid{display:grid;grid-template-columns:repeat(2, 1fr);gap:22px;align-items:start;margin-bottom:22px;}
+  .dash-panel{margin-bottom:0;display:flex;flex-direction:column;}
+  .dash-panel-wide{display:flex;flex-direction:column;}
+  .panel-scroll{max-height:420px;overflow-y:auto;padding-right:4px;}
+  .panel-scroll::-webkit-scrollbar{width:6px;}
+  .panel-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:100px;}
+  @media (max-width:900px){
+    .dash-grid{grid-template-columns:1fr;}
+  }
 
   section.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
     padding:22px;margin-bottom:22px;box-shadow:var(--shadow);}
@@ -125,6 +135,8 @@
   .d-check.missed{background:var(--danger);border-color:var(--danger);color:#fff;}
   .d-main{flex:1;min-width:0;}
   .d-name{font-weight:600;font-size:14.5px;}
+  .d-name.clickable-name{cursor:pointer;display:inline-block;}
+  .d-name.clickable-name:hover{color:var(--leaf);text-decoration:underline;}
   .d-sub{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
   .d-date{font-size:13px;font-weight:600;text-align:right;white-space:nowrap;}
   .d-date .rel{display:block;font-size:11px;font-weight:500;color:var(--ink-soft);margin-top:1px;}
@@ -156,6 +168,10 @@
   .resched-tag{
     display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
     color:var(--amber);background:#fbf3e2;border-radius:100px;padding:2px 7px;margin-left:6px;vertical-align:middle;
+  }
+  .late-tag{
+    display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--danger);background:#f6ded7;border-radius:100px;padding:2px 7px;margin-left:6px;vertical-align:middle;
   }
 
   /* Premium message modal */
@@ -298,6 +314,14 @@
   .status-pill.paused{background:#fbe7c9;color:var(--amber);}
   .status-pill.cancelled{background:#eee;color:var(--ink-soft);}
   .status-pill.completed{background:#e6dff0;color:#6b4fa0;}
+
+  .sub-view-tabs{display:flex;gap:6px;margin:14px 0 10px;flex-wrap:wrap;}
+  .sub-view-tab{
+    font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:100px;border:1px solid var(--line);
+    background:#fff;color:var(--ink-soft);cursor:pointer;transition:.15s;
+  }
+  .sub-view-tab:hover{border-color:var(--leaf);color:var(--leaf);}
+  .sub-view-tab.active{background:var(--moss-deep);color:#fff;border-color:var(--moss-deep);}
   .link-btn{background:none;border:none;color:var(--moss);font-weight:600;font-size:12.5px;cursor:pointer;padding:0;}
   .link-btn:hover{text-decoration:underline;}
   .link-btn.danger{color:var(--danger);}
@@ -370,6 +394,16 @@
   .chip.chip-add:hover{background:#f0f5ec;}
   .chip.chip-add svg{width:14px;height:14px;}
   .chip-grid + .chip-add{margin-top:10px;}
+
+  .chip-with-delete{position:relative;display:inline-flex;}
+  .chip-delete-btn{
+    position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;
+    background:var(--danger);color:#fff;border:1.5px solid var(--paper);font-size:10px;line-height:1;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+    opacity:0;transition:opacity .15s ease, transform .12s ease;
+  }
+  .chip-with-delete:hover .chip-delete-btn{opacity:1;}
+  .chip-delete-btn:hover{transform:scale(1.15);}
 
   /* Calendar */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -489,29 +523,31 @@
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel-head"><h2>Due today</h2></div>
-        <div id="dueToday"></div>
-      </section>
+      <div class="dash-grid">
+        <section class="panel dash-panel">
+          <div class="panel-head"><h2>Due today</h2></div>
+          <div class="panel-scroll" id="dueToday"></div>
+        </section>
 
-      <section class="panel">
-        <div class="panel-head"><h2>Due tomorrow</h2></div>
-        <div id="dueTomorrow"></div>
-      </section>
+        <section class="panel dash-panel">
+          <div class="panel-head"><h2>Due tomorrow</h2></div>
+          <div class="panel-scroll" id="dueTomorrow"></div>
+        </section>
 
-      <section class="panel">
-        <div class="panel-head"><h2>Due this week</h2></div>
-        <div id="dueWeek"></div>
-      </section>
+        <section class="panel dash-panel">
+          <div class="panel-head"><h2>Due this week</h2></div>
+          <div class="panel-scroll" id="dueWeek"></div>
+        </section>
 
-      <section class="panel">
-        <div class="panel-head"><h2 style="color:var(--danger)">Overdue / missed</h2></div>
-        <div id="dueOverdue"></div>
-      </section>
+        <section class="panel dash-panel">
+          <div class="panel-head"><h2 style="color:var(--danger)">Overdue / missed</h2></div>
+          <div class="panel-scroll" id="dueOverdue"></div>
+        </section>
+      </div>
 
-      <section class="panel">
+      <section class="panel dash-panel-wide">
         <div class="panel-head"><h2 style="color:var(--amber)">Ending soon / completed — renew?</h2></div>
-        <div id="dueEnding"></div>
+        <div class="panel-scroll" id="dueEnding"></div>
       </section>
     </section>
 
@@ -593,16 +629,21 @@
     <section id="tab-subscribers" class="tab-content hidden">
       <section class="panel">
         <div class="panel-head">
-          <h2>All subscribers</h2>
+          <h2>Subscribers</h2>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <input id="subSearch" placeholder="Search name or product…" style="padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;min-width:220px;">
             <button type="button" class="btn btn-ghost" id="subscribersExportBtn" style="border-color:var(--line);color:var(--moss-deep);">Export CSV</button>
           </div>
         </div>
-        <p style="font-size:12px;color:var(--ink-soft);margin:-8px 0 14px;">Tap a row to see full delivery history for that subscriber.</p>
+        <div class="sub-view-tabs">
+          <button type="button" class="sub-view-tab active" data-view="active">Active orders</button>
+          <button type="button" class="sub-view-tab" data-view="completed">Completed orders</button>
+          <button type="button" class="sub-view-tab" data-view="sheet">All subscribers — sheet view</button>
+        </div>
+        <p style="font-size:12px;color:var(--ink-soft);margin:0 0 14px;" id="subViewHint">Tap a row to see full delivery history for that subscriber.</p>
         <div style="overflow-x:auto;">
         <table id="subTable">
-          <thead>
+          <thead id="subTableHead">
             <tr><th>Name</th><th>Product</th><th>Cadence</th><th>Location</th><th>Source</th><th>Next delivery</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="subTableBody"></tbody>
@@ -838,6 +879,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 let subscribers = [];   // {id, name, phone, address, product, cadenceDays, durationMonths, startDate, status, timeSlot}
 let deliveries = [];    // {id, subscriberId, subscriberName, product, cadenceDays, dueDate, status, timeSlot}
 let products = [];      // string[]
+let productDocsByName = {}; // name -> [docId, docId, ...] — supports cleaning up duplicate docs
 let calCursor = new Date();
 let appInited = false;
 let editingSubscriberId = null;
@@ -924,6 +966,7 @@ function initApp(){
     subscribers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderSubscribers();
     renderDashboard();
+    if (redrawOpenDetail) redrawOpenDetail();
   }, err => {
     console.error('Subscribers listener error:', err);
     toast('Could not load subscribers — check Firestore rules/connection');
@@ -936,6 +979,7 @@ function initApp(){
     if (!document.getElementById('tab-calendar').classList.contains('hidden')) renderCalendar();
     if (!document.getElementById('tab-history').classList.contains('hidden')) renderHistory();
     if (!document.getElementById('tab-analytics').classList.contains('hidden')) renderAnalytics();
+    if (redrawOpenDetail) redrawOpenDetail();
     subscribers.filter(s => s.status === 'active').forEach(s => checkAndCompleteSubscriber(s.id));
   }, err => {
     console.error('Deliveries listener error:', err);
@@ -961,7 +1005,15 @@ async function initProducts(){
 
   db.collection(PRODUCTS).orderBy('name').onSnapshot(snap => {
     if (snap.empty) return; // keep local defaults showing
-    products = snap.docs.map(d => d.data().name);
+    // Group by name so duplicate docs (e.g. from a double-seed) collapse to one chip,
+    // while remembering every doc id so "delete" can clean up all copies at once.
+    productDocsByName = {};
+    snap.docs.forEach(d => {
+      const name = d.data().name;
+      if (!productDocsByName[name]) productDocsByName[name] = [];
+      productDocsByName[name].push(d.id);
+    });
+    products = Object.keys(productDocsByName).sort();
     populateProductSelect();
   }, err => {
     console.error('Products listener error:', err);
@@ -977,6 +1029,25 @@ function setChipValue(hiddenInputId, chipContainerId, value){
   });
 }
 
+async function deleteProduct(name){
+  const inUse = subscribers.filter(s => s.product === name).length;
+  const warning = inUse
+    ? `"${name}" is currently used by ${inUse} subscriber${inUse>1?'s':''}. Removing it only takes it out of the picker for new/edited subscribers — their existing records keep "${name}" as-is. Continue?`
+    : `Remove "${name}" from the product picker? This can't be undone.`;
+  if (!confirm(warning)) return;
+  const ids = productDocsByName[name] || [];
+  if (!ids.length){ toast('Could not find that product in Firestore'); return; }
+  try {
+    const batch = db.batch();
+    ids.forEach(id => batch.delete(db.collection(PRODUCTS).doc(id)));
+    await batch.commit();
+    toast(`Removed "${name}"`);
+  } catch (err){
+    console.error('Delete product failed:', err);
+    toast('Could not delete — check console / Firestore rules');
+  }
+}
+
 function populateProductSelect(){
   const hidden = document.getElementById('f_product');
   const current = hidden.value;
@@ -984,13 +1055,25 @@ function populateProductSelect(){
   container.innerHTML = '';
   const allNames = products.includes('Other') ? products : [...products, 'Other'];
   allNames.forEach(p => {
+    const chipWrap = document.createElement('span');
+    chipWrap.className = 'chip-with-delete';
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'chip';
     chip.dataset.value = p;
     chip.textContent = p;
     chip.addEventListener('click', () => setChipValue('f_product', 'productChips', p));
-    container.appendChild(chip);
+    chipWrap.appendChild(chip);
+    if (p !== 'Other'){
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'chip-delete-btn';
+      delBtn.title = `Delete "${p}" from product list`;
+      delBtn.innerHTML = '✕';
+      delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteProduct(p); });
+      chipWrap.appendChild(delBtn);
+    }
+    container.appendChild(chipWrap);
   });
   const toSelect = (current && allNames.includes(current)) ? current : allNames[0];
   setChipValue('f_product', 'productChips', toSelect);
@@ -1065,24 +1148,36 @@ function addMonths(d, n){
   return x;
 }
 
-async function generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation){
+// Pure — computes the plan's delivery dates without touching Firestore, so we can preview
+// past-dated occurrences before actually creating them.
+function computeDeliveryDates(cadenceDays, durationMonths, startDate){
   const totalCount = planDeliveryCount(cadenceDays, durationMonths);
-  const batch = db.batch();
+  const dates = [];
   for (let i = 0; i < totalCount; i++){
-    const dueDate = cadenceDays === 30 ? addMonths(startDate, i) : addDays(startDate, i * cadenceDays);
+    dates.push(cadenceDays === 30 ? addMonths(startDate, i) : addDays(startDate, i * cadenceDays));
+  }
+  return dates;
+}
+
+async function generateDeliveries(subId, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation, statusOverrides){
+  const dates = computeDeliveryDates(cadenceDays, durationMonths, startDate);
+  const batch = db.batch();
+  dates.forEach((dueDate, i) => {
     const ref = db.collection(DELIVERIES).doc();
+    const iso = isoDate(dueDate);
+    const overrideStatus = statusOverrides && statusOverrides[iso];
     batch.set(ref, {
       subscriberId: subId,
       subscriberName: name,
       product, cadenceDays,
-      dueDate: isoDate(dueDate),
+      dueDate: iso,
       timeSlot: timeSlot || '',
       dispatchLocation: dispatchLocation || 'Dommasandra',
-      status: 'pending'
+      status: overrideStatus || 'pending'
     });
-  }
+  });
   await batch.commit();
-  return totalCount;
+  return dates.length;
 }
 
 document.getElementById('addForm').addEventListener('submit', async (e) => {
@@ -1189,18 +1284,103 @@ async function saveSubscriber({ name, phone, address, product, cadenceDays, dura
 
 
   // ----- ADD MODE -----
+  const dates = computeDeliveryDates(cadenceDays, durationMonths, startDate);
+  const today = startOfDay(new Date());
+  const pastDates = dates.filter(d => d < today);
+
+  let statusOverrides = {};
+  if (pastDates.length){
+    const result = await promptPastDeliveries(pastDates, name);
+    if (result === null) return; // user cancelled — don't create the subscriber at all
+    statusOverrides = result;
+  }
+
   const subRef = await db.collection(SUBSCRIBERS).add({
     name, phone, address, product, cadenceDays, durationMonths,
     startDate: isoDate(startDate), status: 'active', timeSlot: timeSlot || '', dispatchLocation: dispatchLocation || 'Dommasandra',
     orderSource: orderSource || 'offline', shopifyOrderId: orderSource === 'online' ? shopifyOrderId : '',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation);
+  const count = await generateDeliveries(subRef.id, name, product, cadenceDays, startDate, durationMonths, timeSlot, dispatchLocation, statusOverrides);
 
-  toast(`Saved ${name} — ${count} deliveries scheduled`);
+  toast(pastDates.length
+    ? `Saved ${name} — ${count} deliveries scheduled (${pastDates.length} past ones backfilled)`
+    : `Saved ${name} — ${count} deliveries scheduled`);
   document.getElementById('addForm').reset();
   document.getElementById('f_start').value = isoDate(new Date());
   document.querySelector('.tab-btn[data-tab="dashboard"]').click();
+}
+
+/* ================= Backfill Prompt for Mid-Subscription Entries ================= */
+function promptPastDeliveries(pastDates, subscriberName){
+  return new Promise(resolve => {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'msg-modal-backdrop';
+
+    const modal = document.createElement('div');
+    modal.className = 'msg-modal';
+    modal.style.width = 'min(520px,100%)';
+    modal.innerHTML = `
+      <div class="msg-modal-head">
+        <h3>📋 This plan already started</h3>
+        <p>${subscriberName}'s start date means ${pastDates.length} delivery${pastDates.length>1?'ies':'y'} already fell before today. Tell us what actually happened with ${pastDates.length>1?'them':'it'} before we save.</p>
+      </div>
+      <div class="msg-body">
+        <div class="msg-actions" style="margin-bottom:14px;">
+          <button type="button" class="copy-btn secondary" id="bfMarkAllDelivered">Mark all as Delivered</button>
+          <button type="button" class="copy-btn secondary" id="bfMarkAllMissed">Mark all as Missed</button>
+        </div>
+        <div id="bfList" style="max-height:320px;overflow-y:auto;"></div>
+        <div class="msg-actions" style="margin-top:18px;">
+          <button type="button" class="copy-btn" id="bfConfirm">Confirm &amp; save subscriber</button>
+          <button type="button" class="copy-btn secondary" id="bfCancel">Cancel — let me recheck the start date</button>
+        </div>
+      </div>
+    `;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    const listEl = modal.querySelector('#bfList');
+    pastDates.forEach((d, i) => {
+      const row = document.createElement('div');
+      row.className = 'd-row';
+      row.innerHTML = `
+        <div class="d-main"><div class="d-name">${fmtDate(d)}</div></div>
+      `;
+      const sel = document.createElement('select');
+      sel.dataset.iso = isoDate(d);
+      sel.style.padding = '8px 12px';
+      sel.style.border = '1px solid var(--line)';
+      sel.style.borderRadius = '9px';
+      sel.style.fontSize = '13px';
+      sel.innerHTML = `
+        <option value="delivered" selected>Delivered</option>
+        <option value="missed">Missed</option>
+        <option value="pending">Leave as upcoming</option>
+      `;
+      row.appendChild(sel);
+      listEl.appendChild(row);
+    });
+
+    function finish(result){
+      backdrop.remove();
+      resolve(result);
+    }
+
+    modal.querySelector('#bfMarkAllDelivered').addEventListener('click', () => {
+      listEl.querySelectorAll('select').forEach(s => s.value = 'delivered');
+    });
+    modal.querySelector('#bfMarkAllMissed').addEventListener('click', () => {
+      listEl.querySelectorAll('select').forEach(s => s.value = 'missed');
+    });
+    modal.querySelector('#bfCancel').addEventListener('click', () => finish(null));
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) finish(null); });
+    modal.querySelector('#bfConfirm').addEventListener('click', () => {
+      const overrides = {};
+      listEl.querySelectorAll('select').forEach(s => { overrides[s.dataset.iso] = s.value; });
+      finish(overrides);
+    });
+  });
 }
 
 function exitEditMode(){
@@ -1261,7 +1441,15 @@ function openEditForm(sub){
 async function cycleStatus(delivery){
   const order = ['pending', 'delivered', 'missed'];
   const next = order[(order.indexOf(delivery.status) + 1) % order.length];
-  await db.collection(DELIVERIES).doc(delivery.id).update({ status: next });
+  const update = { status: next };
+  if (next === 'delivered'){
+    // Flag as "delivered late" if it was previously marked missed, or if it's being marked
+    // delivered after its due date has already passed — so Analytics doesn't count it as on-time.
+    update.deliveredLate = (delivery.status === 'missed') || (delivery.dueDate < startOfDay(new Date()));
+  } else {
+    update.deliveredLate = false;
+  }
+  await db.collection(DELIVERIES).doc(delivery.id).update(update);
   checkAndCompleteSubscriber(delivery.subscriberId);
 }
 
@@ -1289,14 +1477,19 @@ function deliveryRow(d){
   const main = document.createElement('div');
   main.className = 'd-main';
   const cadenceLabel = d.cadenceDays === 7 ? 'weekly' : d.cadenceDays === 14 ? 'biweekly' : 'monthly';
-  main.innerHTML = `<div class="d-name">${d.subscriberName}</div>
+  main.innerHTML = `<div class="d-name clickable-name">${d.subscriberName}</div>
     <div class="d-sub">${d.product} · <span class="badge ${cadenceLabel}">${cadenceLabel}</span>${d.timeSlot ? ' · ' + d.timeSlot : ''}${d.dispatchLocation ? ` · <span class="badge location">📍 ${d.dispatchLocation}</span>` : ''}</div>`;
+  main.querySelector('.d-name').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (d.subscriberId) openSubscriberDetail(d.subscriberId);
+  });
 
   const dateEl = document.createElement('div');
   dateEl.className = 'd-date';
-  const relText = d.status === 'delivered' ? 'Delivered' : d.status === 'missed' ? 'Missed' : relLabel(d.dueDate);
+  const relText = d.status === 'delivered' ? (d.deliveredLate ? 'Delivered late' : 'Delivered') : d.status === 'missed' ? 'Missed' : relLabel(d.dueDate);
   const reschedTag = d.originalDueDate ? `<span class="resched-tag" title="Originally ${fmtDate(new Date(d.originalDueDate + 'T00:00:00'))}">rescheduled</span>` : '';
-  dateEl.innerHTML = `${fmtDate(d.dueDate)}${reschedTag}<span class="rel">${relText}</span>`;
+  const lateTag = (d.status === 'delivered' && d.deliveredLate) ? `<span class="late-tag" title="Marked delivered after the original due date">late</span>` : '';
+  dateEl.innerHTML = `${fmtDate(d.dueDate)}${reschedTag}${lateTag}<span class="rel">${relText}</span>`;
 
   const iconGroup = document.createElement('div');
   iconGroup.className = 'd-icons';
@@ -1465,16 +1658,100 @@ function nextDeliveryFor(subId){
   return upcoming[0] || null;
 }
 
+let subscribersViewMode = 'active';
+
+document.querySelectorAll('.sub-view-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sub-view-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    subscribersViewMode = btn.dataset.view;
+    const hints = {
+      active: 'Tap a row to see full delivery history for that subscriber.',
+      completed: 'Completed and cancelled orders. Tap a row to see their full delivery history, or Renew to start a new plan.',
+      sheet: 'Every subscriber with full details in one wide sheet. Tap a row to see full delivery history.'
+    };
+    document.getElementById('subViewHint').textContent = hints[subscribersViewMode] || '';
+    renderSubscribers();
+  });
+});
+
+function subActionButtons(s, actionsTd){
+  const editBtn = document.createElement('button');
+  editBtn.className = 'act-btn edit';
+  editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Edit';
+  editBtn.onclick = () => openEditForm(s);
+  actionsTd.appendChild(editBtn);
+
+  if (s.status === 'active'){
+    const pauseBtn = document.createElement('button');
+    pauseBtn.className = 'act-btn pause';
+    pauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Pause';
+    pauseBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'paused' });
+    actionsTd.appendChild(pauseBtn);
+  } else if (s.status === 'paused'){
+    const resumeBtn = document.createElement('button');
+    resumeBtn.className = 'act-btn resume';
+    resumeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z"/></svg>Resume';
+    resumeBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'active' });
+    actionsTd.appendChild(resumeBtn);
+  } else if (s.status === 'completed'){
+    const renewBtn = document.createElement('button');
+    renewBtn.className = 'act-btn renew';
+    renewBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>Renew';
+    renewBtn.onclick = () => openRenewForm(s);
+    actionsTd.appendChild(renewBtn);
+  }
+
+  if (s.status !== 'cancelled'){
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'act-btn cancel';
+    cancelBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Cancel';
+    cancelBtn.onclick = () => {
+      if (confirm(`Cancel ${s.name}'s subscription? Remaining pending deliveries will be removed.`)){
+        db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'cancelled' });
+        deliveries.filter(d => d.subscriberId === s.id && d.status === 'pending')
+          .forEach(d => db.collection(DELIVERIES).doc(d.id).delete());
+      }
+    };
+    actionsTd.appendChild(cancelBtn);
+  }
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'act-btn delete';
+  deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>Delete';
+  deleteBtn.onclick = () => confirmDeleteSubscriber(s);
+  actionsTd.appendChild(deleteBtn);
+}
+
 function renderSubscribers(){
   const body = document.getElementById('subTableBody');
+  const head = document.getElementById('subTableHead');
   const search = (document.getElementById('subSearch').value || '').toLowerCase();
   body.innerHTML = '';
-  const filtered = subscribers
+
+  let pool = subscribers;
+  if (subscribersViewMode === 'active') pool = pool.filter(s => s.status === 'active' || s.status === 'paused');
+  else if (subscribersViewMode === 'completed') pool = pool.filter(s => s.status === 'completed' || s.status === 'cancelled');
+  // 'sheet' mode uses every subscriber regardless of status
+
+  const filtered = pool
     .filter(s => (s.name + ' ' + s.product + ' ' + (s.dispatchLocation || '')).toLowerCase().includes(search))
     .sort((a,b) => a.name.localeCompare(b.name));
 
+  if (subscribersViewMode === 'sheet'){
+    head.innerHTML = `<tr><th>Name</th><th>Phone</th><th>Address</th><th>Product</th><th>Cadence</th><th>Plan</th><th>Start date</th><th>Time slot</th><th>Location</th><th>Source</th><th>Delivered</th><th>Missed</th><th>Upcoming</th><th>Status</th><th></th></tr>`;
+  } else {
+    head.innerHTML = `<tr><th>Name</th><th>Product</th><th>Cadence</th><th>Location</th><th>Source</th><th>Next delivery</th><th>Status</th><th></th></tr>`;
+  }
+
   if (!filtered.length){
-    body.innerHTML = `<tr><td colspan="8" class="empty">No subscribers yet — add one from the "+ Add Subscriber" tab.</td></tr>`;
+    const colspan = subscribersViewMode === 'sheet' ? 15 : 8;
+    const emptyMsg = subscribersViewMode === 'completed'
+      ? 'No completed or cancelled orders yet.'
+      : subscribersViewMode === 'active'
+      ? 'No active orders yet — add one from the "+ Add Subscriber" tab.'
+      : 'No subscribers yet — add one from the "+ Add Subscriber" tab.';
+    body.innerHTML = `<tr><td colspan="${colspan}" class="empty">${emptyMsg}</td></tr>`;
     return;
   }
 
@@ -1482,67 +1759,48 @@ function renderSubscribers(){
     const nd = nextDeliveryFor(s.id);
     const cadenceLabel = s.cadenceDays === 7 ? 'Weekly' : s.cadenceDays === 14 ? 'Biweekly' : 'Monthly';
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${s.name}</strong>${s.phone ? `<div class="d-sub mono">${s.phone}</div>` : ''}</td>
-      <td>${s.product}</td>
-      <td>${cadenceLabel}</td>
-      <td>${s.dispatchLocation ? `<span class="badge location">📍 ${s.dispatchLocation}</span>` : '<span class="d-sub">—</span>'}</td>
-      <td>${s.orderSource === 'online' ? `<span class="badge source-online">🛒 Online${s.shopifyOrderId ? ' ' + s.shopifyOrderId : ''}</span>` : `<span class="badge source-offline">📝 Offline</span>`}</td>
-      <td>${nd ? fmtDate(nd.dueDate) + ' · ' + relLabel(nd.dueDate) : '<span class="d-sub">—</span>'}</td>
-      <td><span class="status-pill ${s.status}">${s.status}</span></td>
-      <td></td>
-    `;
     tr.className = 'sub-row';
     tr.addEventListener('click', () => openSubscriberDetail(s));
+
+    if (subscribersViewMode === 'sheet'){
+      const subList = subscriberDeliveries(s.id);
+      const delivered = subList.filter(d => d.status === 'delivered').length;
+      const missed = subList.filter(d => d.status === 'missed').length;
+      const upcoming = subList.filter(d => d.status === 'pending').length;
+      tr.innerHTML = `
+        <td><strong>${s.name}</strong></td>
+        <td>${s.phone || '<span class="d-sub">—</span>'}</td>
+        <td>${s.address || '<span class="d-sub">—</span>'}</td>
+        <td>${s.product}</td>
+        <td>${cadenceLabel}</td>
+        <td>${s.durationMonths} mo</td>
+        <td>${s.startDate ? fmtDate(new Date(s.startDate + 'T00:00:00')) : '—'}</td>
+        <td>${s.timeSlot || '<span class="d-sub">—</span>'}</td>
+        <td>${s.dispatchLocation ? `<span class="badge location">📍 ${s.dispatchLocation}</span>` : '<span class="d-sub">—</span>'}</td>
+        <td>${s.orderSource === 'online' ? `<span class="badge source-online">🛒 Online</span>` : `<span class="badge source-offline">📝 Offline</span>`}</td>
+        <td>${delivered}</td>
+        <td>${missed}</td>
+        <td>${upcoming}</td>
+        <td><span class="status-pill ${s.status}">${s.status}</span></td>
+        <td></td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td><strong>${s.name}</strong>${s.phone ? `<div class="d-sub mono">${s.phone}</div>` : ''}</td>
+        <td>${s.product}</td>
+        <td>${cadenceLabel}</td>
+        <td>${s.dispatchLocation ? `<span class="badge location">📍 ${s.dispatchLocation}</span>` : '<span class="d-sub">—</span>'}</td>
+        <td>${s.orderSource === 'online' ? `<span class="badge source-online">🛒 Online${s.shopifyOrderId ? ' ' + s.shopifyOrderId : ''}</span>` : `<span class="badge source-offline">📝 Offline</span>`}</td>
+        <td>${nd ? fmtDate(nd.dueDate) + ' · ' + relLabel(nd.dueDate) : '<span class="d-sub">—</span>'}</td>
+        <td><span class="status-pill ${s.status}">${s.status}</span></td>
+        <td></td>
+      `;
+    }
+
     const actionsTd = tr.lastElementChild;
     actionsTd.className = 'actions-cell';
     actionsTd.addEventListener('click', (e) => e.stopPropagation());
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'act-btn edit';
-    editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>Edit';
-    editBtn.onclick = () => openEditForm(s);
-    actionsTd.appendChild(editBtn);
-
-    if (s.status === 'active'){
-      const pauseBtn = document.createElement('button');
-      pauseBtn.className = 'act-btn pause';
-      pauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>Pause';
-      pauseBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'paused' });
-      actionsTd.appendChild(pauseBtn);
-    } else if (s.status === 'paused'){
-      const resumeBtn = document.createElement('button');
-      resumeBtn.className = 'act-btn resume';
-      resumeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z"/></svg>Resume';
-      resumeBtn.onclick = () => db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'active' });
-      actionsTd.appendChild(resumeBtn);
-    } else if (s.status === 'completed'){
-      const renewBtn = document.createElement('button');
-      renewBtn.className = 'act-btn renew';
-      renewBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7M3 12v5h5"/></svg>Renew';
-      renewBtn.onclick = () => openRenewForm(s);
-      actionsTd.appendChild(renewBtn);
-    }
-
-    if (s.status !== 'cancelled'){
-      const cancelBtn = document.createElement('button');
-      cancelBtn.className = 'act-btn cancel';
-      cancelBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Cancel';
-      cancelBtn.onclick = () => {
-        if (confirm(`Cancel ${s.name}'s subscription? Remaining pending deliveries will be removed.`)){
-          db.collection(SUBSCRIBERS).doc(s.id).update({ status: 'cancelled' });
-          deliveries.filter(d => d.subscriberId === s.id && d.status === 'pending')
-            .forEach(d => db.collection(DELIVERIES).doc(d.id).delete());
-        }
-      };
-      actionsTd.appendChild(cancelBtn);
-    }
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'act-btn delete';
-    deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>Delete';
-    deleteBtn.onclick = () => confirmDeleteSubscriber(s);
-    actionsTd.appendChild(deleteBtn);
+    subActionButtons(s, actionsTd);
 
     body.appendChild(tr);
   });
@@ -1991,7 +2249,9 @@ document.getElementById('historyExportBtn').addEventListener('click', () => {
   const headers = ['Subscriber','Product','Cadence','Due Date','Time Slot','Dispatch Location','Status','Has Photo'];
   const rows = resolved.map(d => [
     d.subscriberName, d.product, cadenceLabelFor(d.cadenceDays), fmtDate(d.dueDate),
-    d.timeSlot || '', d.dispatchLocation || '', d.status, d.photoUrl ? 'Yes' : 'No'
+    d.timeSlot || '', d.dispatchLocation || '',
+    d.status === 'delivered' ? (d.deliveredLate ? 'Delivered (late)' : 'Delivered') : d.status,
+    d.photoUrl ? 'Yes' : 'No'
   ]);
   downloadCSV(`hanabee-delivery-history-${isoDate(new Date())}.csv`, headers, rows);
 });
@@ -2012,18 +2272,22 @@ function analyticsBarRow(label, num, max){
 function renderAnalytics(){
   const activeSubs = subscribers.filter(s => s.status === 'active');
   const totalSubs = subscribers.length;
-  const delivered = deliveries.filter(d => d.status === 'delivered').length;
+  const deliveredAll = deliveries.filter(d => d.status === 'delivered');
+  const deliveredOnTime = deliveredAll.filter(d => !d.deliveredLate).length;
+  const deliveredLate = deliveredAll.filter(d => d.deliveredLate).length;
+  const delivered = deliveredAll.length;
   const missed = deliveries.filter(d => d.status === 'missed').length;
   const pending = deliveries.filter(d => d.status === 'pending').length;
   const totalResolved = delivered + missed;
-  const onTimeRate = totalResolved > 0 ? Math.round((delivered / totalResolved) * 100) : 100;
+  const onTimeRate = totalResolved > 0 ? Math.round((deliveredOnTime / totalResolved) * 100) : 100;
 
   const statRow = document.getElementById('analyticsStatRow');
   statRow.innerHTML = '';
   [
     { label: 'Total subscribers', num: totalSubs, cls:'' },
     { label: 'Active', num: activeSubs.length, cls:'' },
-    { label: 'Delivered (all-time)', num: delivered, cls:'' },
+    { label: 'Delivered on time', num: deliveredOnTime, cls:'' },
+    { label: 'Delivered late', num: deliveredLate, cls: deliveredLate > 0 ? 'warn' : '' },
     { label: 'Missed (all-time)', num: missed, cls: missed > 0 ? 'danger' : '' },
   ].forEach(s => {
     const c = document.createElement('div');
@@ -2084,8 +2348,9 @@ function renderAnalytics(){
   // Outcomes
   const outcomesEl = document.getElementById('analyticsOutcomes');
   outcomesEl.innerHTML = '';
-  const outcomeMax = Math.max(1, delivered, missed, pending);
-  outcomesEl.appendChild(analyticsBarRow('Delivered', delivered, outcomeMax));
+  const outcomeMax = Math.max(1, deliveredOnTime, deliveredLate, missed, pending);
+  outcomesEl.appendChild(analyticsBarRow('Delivered on time', deliveredOnTime, outcomeMax));
+  outcomesEl.appendChild(analyticsBarRow('Delivered late', deliveredLate, outcomeMax));
   outcomesEl.appendChild(analyticsBarRow('Missed', missed, outcomeMax));
   outcomesEl.appendChild(analyticsBarRow('Pending / upcoming', pending, outcomeMax));
 
@@ -2094,96 +2359,115 @@ function renderAnalytics(){
   rateEl.innerHTML = `
     <div class="rate-hero">
       <span class="big">${onTimeRate}%</span>
-      <span class="cap">of resolved deliveries were successfully delivered (${delivered} of ${totalResolved || 0})</span>
+      <span class="cap">of resolved deliveries were delivered on time (${deliveredOnTime} on-time, ${deliveredLate} late, ${missed} missed — ${totalResolved || 0} resolved total)</span>
     </div>
   `;
 }
 
 /* ================= Subscriber Detail Modal ================= */
-function openSubscriberDetail(sub){
-  const list = subscriberDeliveries(sub.id);
-  const delivered = list.filter(d => d.status === 'delivered').length;
-  const missed = list.filter(d => d.status === 'missed').length;
-  const pending = list.filter(d => d.status === 'pending').length;
-  const initials = sub.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+let openDetailSubscriberId = null;
+let redrawOpenDetail = null;
 
-  // Find this customer's other subscription orders (matched by phone, falling back to name)
-  const otherOrders = subscribers.filter(s => {
-    if (s.id === sub.id) return false;
-    if (sub.phone && s.phone) return s.phone === sub.phone;
-    return s.name.trim().toLowerCase() === sub.name.trim().toLowerCase();
-  }).sort((a,b) => (b.startDate || '').localeCompare(a.startDate || ''));
+function openSubscriberDetail(subOrId){
+  const subId = typeof subOrId === 'string' ? subOrId : subOrId.id;
+  openDetailSubscriberId = subId;
 
   const backdrop = document.createElement('div');
   backdrop.className = 'msg-modal-backdrop';
-  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeDetail(); });
 
   const modal = document.createElement('div');
   modal.className = 'msg-modal';
-  modal.innerHTML = `
-    <div class="msg-modal-head">
-      <button class="msg-modal-close" id="detailCloseBtn">✕</button>
-      <h3>${sub.name}</h3>
-      <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · ${sub.durationMonths} month${sub.durationMonths>1?'s':''} plan${sub.dispatchLocation ? ' · 📍 ' + sub.dispatchLocation : ''}</p>
-    </div>
-    <div class="msg-body">
-      <div class="detail-head-card">
-        <div class="detail-avatar">${initials}</div>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14.5px;">${sub.phone || 'No phone on file'}</div>
-          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${sub.address || 'No address on file'}</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <span class="status-pill ${sub.status}">${sub.status}</span>
-          ${sub.orderSource === 'online'
-            ? `<span class="badge source-online">🛒 Online${sub.shopifyOrderId ? ' ' + sub.shopifyOrderId : ''}</span>`
-            : `<span class="badge source-offline">📝 Offline</span>`}
-        </div>
-      </div>
-      <div class="detail-stats">
-        <div class="detail-stat"><div class="n">${delivered}</div><div class="l">Delivered</div></div>
-        <div class="detail-stat"><div class="n">${missed}</div><div class="l">Missed</div></div>
-        <div class="detail-stat"><div class="n">${pending}</div><div class="l">Upcoming</div></div>
-      </div>
-      ${otherOrders.length ? `
-        <div class="detail-section-label">Other subscription orders (${otherOrders.length})</div>
-        <div id="detailOtherOrders"></div>
-      ` : ''}
-      <div class="detail-section-label">Delivery history — this order</div>
-      <div id="detailDeliveryList"></div>
-    </div>
-  `;
   backdrop.appendChild(modal);
   document.body.appendChild(backdrop);
-  modal.querySelector('#detailCloseBtn').addEventListener('click', () => backdrop.remove());
 
-  if (otherOrders.length){
-    const ordersWrap = modal.querySelector('#detailOtherOrders');
-    otherOrders.forEach(o => {
-      const oList = subscriberDeliveries(o.id);
-      const oDelivered = oList.filter(d => d.status === 'delivered').length;
-      const card = document.createElement('div');
-      card.className = 'order-card';
-      card.innerHTML = `
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:13.5px;">${o.product}</div>
-          <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">
-            ${cadenceLabelFor(o.cadenceDays)} · ${o.durationMonths} month${o.durationMonths>1?'s':''} · started ${o.startDate ? fmtDate(new Date(o.startDate + 'T00:00:00')) : '—'} · ${oDelivered}/${oList.length} delivered
+  function closeDetail(){
+    if (openDetailSubscriberId === subId){ openDetailSubscriberId = null; redrawOpenDetail = null; }
+    backdrop.remove();
+  }
+
+  function draw(){
+    const sub = subscribers.find(s => s.id === subId);
+    if (!sub){ modal.innerHTML = `<div class="msg-body"><div class="empty">This subscriber no longer exists.</div></div>`; return; }
+
+    const list = subscriberDeliveries(sub.id);
+    const delivered = list.filter(d => d.status === 'delivered').length;
+    const missed = list.filter(d => d.status === 'missed').length;
+    const pending = list.filter(d => d.status === 'pending').length;
+    const initials = sub.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+    const otherOrders = subscribers.filter(s => {
+      if (s.id === sub.id) return false;
+      if (sub.phone && s.phone) return s.phone === sub.phone;
+      return s.name.trim().toLowerCase() === sub.name.trim().toLowerCase();
+    }).sort((a,b) => (b.startDate || '').localeCompare(a.startDate || ''));
+
+    modal.innerHTML = `
+      <div class="msg-modal-head">
+        <button class="msg-modal-close" id="detailCloseBtn">✕</button>
+        <h3>${sub.name}</h3>
+        <p>${sub.product} · ${cadenceLabelFor(sub.cadenceDays)} · ${sub.durationMonths} month${sub.durationMonths>1?'s':''} plan${sub.dispatchLocation ? ' · 📍 ' + sub.dispatchLocation : ''}</p>
+      </div>
+      <div class="msg-body">
+        <div class="detail-head-card">
+          <div class="detail-avatar">${initials}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14.5px;">${sub.phone || 'No phone on file'}</div>
+            <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">${sub.address || 'No address on file'}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+            <span class="status-pill ${sub.status}">${sub.status}</span>
+            ${sub.orderSource === 'online'
+              ? `<span class="badge source-online">🛒 Online${sub.shopifyOrderId ? ' ' + sub.shopifyOrderId : ''}</span>`
+              : `<span class="badge source-offline">📝 Offline</span>`}
           </div>
         </div>
-        <span class="status-pill ${o.status}">${o.status}</span>
-      `;
-      card.addEventListener('click', () => { backdrop.remove(); openSubscriberDetail(o); });
-      ordersWrap.appendChild(card);
-    });
+        <div class="detail-stats">
+          <div class="detail-stat"><div class="n">${delivered}</div><div class="l">Delivered</div></div>
+          <div class="detail-stat"><div class="n">${missed}</div><div class="l">Missed</div></div>
+          <div class="detail-stat"><div class="n">${pending}</div><div class="l">Upcoming</div></div>
+        </div>
+        ${otherOrders.length ? `
+          <div class="detail-section-label">Other subscription orders (${otherOrders.length})</div>
+          <div id="detailOtherOrders"></div>
+        ` : ''}
+        <div class="detail-section-label">Delivery history — this order</div>
+        <div id="detailDeliveryList"></div>
+      </div>
+    `;
+    modal.querySelector('#detailCloseBtn').addEventListener('click', closeDetail);
+
+    if (otherOrders.length){
+      const ordersWrap = modal.querySelector('#detailOtherOrders');
+      otherOrders.forEach(o => {
+        const oList = subscriberDeliveries(o.id);
+        const oDelivered = oList.filter(d => d.status === 'delivered').length;
+        const card = document.createElement('div');
+        card.className = 'order-card';
+        card.innerHTML = `
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:13.5px;">${o.product}</div>
+            <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">
+              ${cadenceLabelFor(o.cadenceDays)} · ${o.durationMonths} month${o.durationMonths>1?'s':''} · started ${o.startDate ? fmtDate(new Date(o.startDate + 'T00:00:00')) : '—'} · ${oDelivered}/${oList.length} delivered
+            </div>
+          </div>
+          <span class="status-pill ${o.status}">${o.status}</span>
+        `;
+        card.addEventListener('click', () => { openDetailSubscriberId = null; redrawOpenDetail = null; backdrop.remove(); openSubscriberDetail(o); });
+        ordersWrap.appendChild(card);
+      });
+    }
+
+    const listWrap = modal.querySelector('#detailDeliveryList');
+    if (!list.length){
+      listWrap.innerHTML = '<div class="empty">No deliveries recorded yet.</div>';
+    } else {
+      list.slice().reverse().forEach(d => listWrap.appendChild(deliveryRow(d)));
+    }
   }
 
-  const listWrap = modal.querySelector('#detailDeliveryList');
-  if (!list.length){
-    listWrap.innerHTML = '<div class="empty">No deliveries recorded yet.</div>';
-  } else {
-    list.slice().reverse().forEach(d => listWrap.appendChild(deliveryRow(d)));
-  }
+  redrawOpenDetail = draw;
+  draw();
 }
 
 /* ================= Browser Notifications ================= */
