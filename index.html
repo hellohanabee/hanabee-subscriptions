@@ -451,9 +451,180 @@
     .filter-bar select, .filter-bar input[type="month"]{flex:1;min-width:120px;}
     .detail-stats{grid-template-columns:1fr 1fr 1fr;}
   }
+
+/* ================= Invoices (admins + invited emails) ================= */
+.ivx .btn{border:none;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.15s;}
+.ivx .btn:active{transform:scale(.98);}
+.ivx .btn:disabled{opacity:.6;cursor:not-allowed;}
+.ivx .btn-primary{background:var(--moss);color:#fff;}
+.ivx .btn-primary:hover:not(:disabled){background:var(--moss-deep);}
+.ivx .btn-outline{background:#fff;color:var(--moss-deep);border:1px solid var(--line);}
+.ivx .btn-outline:hover{border-color:var(--leaf);}
+.ivx .btn-danger{background:var(--danger);color:#fff;}
+.ivx .btn-wa{background:#25D366;color:#fff;}
+.ivx .btn-wa:hover{background:#1fb856;}
+.ivx .link-btn{background:none;border:none;color:var(--moss);font-weight:600;font-size:12.5px;cursor:pointer;padding:0;font-family:'Inter',sans-serif;}
+.ivx .link-btn:hover{text-decoration:underline;}
+.ivx .act-btn{display:inline-flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;padding:6px 12px;border-radius:100px;border:1px solid var(--line);background:#fff;color:var(--moss-deep);cursor:pointer;transition:.15s;white-space:nowrap;}
+.ivx .act-btn:hover{border-color:var(--leaf);background:#f4f7f1;}
+.ivx .act-btn.share{background:var(--moss-deep);color:#fff;border-color:var(--moss-deep);}
+.ivx .act-btn.share:hover{background:var(--moss);}
+.ivx .act-btn.del{color:var(--danger);border-color:#eccbc0;}
+.ivx .act-btn.del:hover{background:#fbeeea;}
+.ivx section.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:22px;box-shadow:var(--shadow);}
+.ivx .panel-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.ivx .panel-head h2{font-size:18px;color:var(--moss-deep);}
+.ivx .subhead{margin:4px 0 0;font-size:13px;color:var(--ink-soft);font-weight:500;line-height:1.5;}
+.ivx .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px;}
+.ivx .stat-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);}
+.ivx .stat-card .num{font-family:'Fraunces',serif;font-size:28px;color:var(--moss-deep);line-height:1.1;}
+.ivx .stat-card .label{font-size:12px;color:var(--ink-soft);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;}
+.ivx .stat-card.warn .num{color:var(--amber);}
+.ivx .stat-card.good .num{color:var(--leaf);}
+.ivx .filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.ivx .filter-search{display:flex;align-items:center;gap:8px;background:var(--ivory);border:1px solid var(--line);border-radius:10px;padding:9px 12px;flex:1;min-width:200px;}
+.ivx .filter-search input{border:none;background:none;outline:none;font-size:13.5px;width:100%;font-family:'Inter',sans-serif;color:var(--ink);}
+.ivx .filter-bar select{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;font-family:'Inter',sans-serif;background:#fff;color:var(--ink);}
+.ivx .inv-row{display:grid;grid-template-columns:1.1fr 1.7fr 1fr .8fr auto;gap:14px;align-items:center;padding:14px 12px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:10px;transition:.12s;}
+.ivx .inv-row:last-child{border-bottom:none;}
+.ivx .inv-row:hover{background:#f7faf5;}
+.ivx .inv-no{font-weight:700;font-size:14px;}
+.ivx .inv-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+.ivx .inv-cust{font-weight:600;font-size:14.5px;}
+.ivx .inv-amt{font-weight:700;font-size:14.5px;}
+.ivx .row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.ivx .empty{color:var(--ink-soft);font-size:13.5px;padding:28px 4px;text-align:center;}
+.ivx .badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:100px;white-space:nowrap;display:inline-block;}
+.ivx .badge.t-subscription{background:#e4ecdd;color:var(--leaf);}
+.ivx .badge.t-custom{background:var(--bloom-soft);color:var(--bloom);}
+.ivx .badge.t-website{background:#d7ecf7;color:#1e6f8f;}
+.ivx .badge.t-other{background:#efe8da;color:#8a6a2f;}
+.ivx .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;display:inline-block;}
+.ivx .pill.paid{background:#e4ecdd;color:var(--leaf);}
+.ivx .pill.partial{background:#fbe7c9;color:var(--amber);}
+.ivx .pill.unpaid{background:#f6ded7;color:var(--danger);}
+@media (max-width:820px){
+.ivx .inv-row{grid-template-columns:1fr 1fr;}
+.ivx .row-actions{justify-content:flex-start;grid-column:1 / -1;}
+}
+.ivx .form-section{margin-bottom:26px;padding-bottom:24px;border-bottom:1px solid var(--line);}
+.ivx .form-section:last-of-type{border-bottom:none;margin-bottom:10px;padding-bottom:0;}
+.ivx .form-section-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--leaf);margin-bottom:14px;}
+.ivx .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;}
+.ivx .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:7px;text-transform:uppercase;letter-spacing:.4px;}
+.ivx .field input,.ivx .field select,.ivx .field textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;font-size:14.5px;font-family:'Inter',sans-serif;background:#fff;color:var(--ink);transition:.15s;}
+.ivx .field textarea{resize:vertical;min-height:70px;}
+.ivx .field input:focus,.ivx .field select:focus,.ivx .field textarea:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 4px #e4ecdd;}
+.ivx .span-all{grid-column:1 / -1;}
+.ivx .chip-grid{display:flex;flex-wrap:wrap;gap:10px;}
+.ivx .chip{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 16px;cursor:pointer;transition:.15s;}
+.ivx .chip:hover{border-color:var(--leaf);background:#f7faf5;}
+.ivx .chip.selected{background:linear-gradient(135deg,var(--moss),var(--moss-deep));color:#fff;border-color:var(--moss-deep);}
+.ivx .items-head,.ivx .item-row{display:grid;grid-template-columns:1fr 80px 120px 120px 36px;gap:10px;align-items:center;}
+.ivx .items-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin-bottom:8px;padding:0 2px;}
+.ivx .item-row{margin-bottom:10px;}
+.ivx .item-row input{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;}
+.ivx .item-row input:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px #e4ecdd;}
+.ivx .it-amt{font-weight:700;font-size:14px;text-align:right;padding-right:4px;}
+.ivx .icon-x{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;}
+.ivx .icon-x:hover{color:var(--danger);border-color:#eccbc0;}
+@media (max-width:700px){
+.ivx .items-head{display:none;}
+.ivx .item-row{grid-template-columns:1fr 1fr;}
+.ivx .item-row .it-desc{grid-column:1 / -1;}
+.ivx .it-amt{text-align:left;}
+}
+.ivx .summary-card{background:var(--ivory);border:1px solid var(--line);border-radius:14px;padding:18px 20px;max-width:380px;margin-left:auto;}
+.ivx .sum-line{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;color:var(--ink-soft);}
+.ivx .sum-line.big{font-size:16px;font-weight:700;color:var(--moss-deep);border-top:1px solid var(--line);margin-top:6px;padding-top:10px;}
+.ivx .form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;}
+.ivx .access-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);}
+.ivx .access-row:last-child{border-bottom:none;}
+.ivx .access-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--bloom),var(--moss));color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:15px;flex-shrink:0;}
+.ivx .access-main{flex:1;min-width:0;}
+.ivx .access-email{font-weight:600;font-size:14px;overflow-wrap:anywhere;}
+.ivx .add-email-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.ivx .add-email-row input{flex:1;min-width:240px;padding:12px 14px;border:1.5px solid var(--line);border-radius:11px;font-size:14.5px;font-family:'Inter',sans-serif;}
+.ivx .add-email-row input:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 4px #e4ecdd;}
+.ivm-backdrop{position:fixed;inset:0;background:rgba(32,40,28,.55);backdrop-filter:blur(2px);display:flex;align-items:flex-start;justify-content:center;z-index:80;padding:24px 16px;overflow:auto;}
+.ivm{background:var(--paper);border-radius:20px;width:min(540px,100%);box-shadow:0 20px 60px -12px rgba(32,40,28,.45);margin:auto 0;}
+.ivm.wide{width:min(860px,100%);}
+.ivm-head{padding:20px 24px;background:linear-gradient(135deg,var(--moss-deep),#34432c);color:#fff;border-radius:20px 20px 0 0;position:relative;}
+.ivm-head h3{color:#fff;font-size:19px;margin-bottom:3px;padding-right:40px;}
+.ivm-head p{margin:0;font-size:12.5px;color:#c7d4be;}
+.ivm-close{position:absolute;top:16px;right:18px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);border:none;color:#fff;cursor:pointer;font-size:15px;}
+.ivm-close:hover{background:rgba(255,255,255,.26);}
+.ivm-body{padding:22px 24px 26px;}
+.ivx .action-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.ivx .msg-card{background:#f6f4ea;border:1px solid var(--line);border-radius:14px;padding:16px 18px;font-size:13.5px;line-height:1.6;white-space:pre-wrap;color:var(--ink);margin-bottom:12px;max-height:260px;overflow:auto;}
+.ivx .block-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--leaf);margin:18px 0 8px;display:block;}
+.ivx .link-box{display:flex;gap:8px;flex-wrap:wrap;}
+.ivx .link-box input{flex:1;min-width:200px;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:12.5px;font-family:'JetBrains Mono',monospace;background:var(--ivory);color:var(--ink);}
+.ivx .toggle-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-soft);margin-top:10px;cursor:pointer;}
+.ivx .note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:8px 0 0;}
+.ivx .inv-sheet{background:#fff;border:1px solid var(--line);border-radius:16px;padding:38px 40px;position:relative;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.ivx .inv-sheet::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--moss),var(--leaf),var(--bloom));}
+.ivx .sheet-head{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:28px;}
+.ivx .sheet-brand{display:flex;gap:14px;align-items:center;}
+.ivx .sheet-logo{width:48px;height:48px;border-radius:50%;background:var(--bloom-soft);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.ivx .sheet-biz{font-family:'Fraunces',serif;font-size:24px;color:var(--moss-deep);line-height:1.1;}
+.ivx .sheet-tag{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+.ivx .sheet-meta{text-align:right;font-size:13px;color:var(--ink-soft);line-height:1.7;}
+.ivx .sheet-title{font-family:'Fraunces',serif;font-size:26px;color:var(--moss-deep);letter-spacing:2px;}
+.ivx .sheet-no{font-weight:700;color:var(--ink);font-size:15px;}
+.ivx .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:22px;}
+.ivx .party-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--leaf);margin-bottom:6px;}
+.ivx .party-body{font-size:13.5px;line-height:1.6;color:var(--ink);}
+.ivx .party-body strong{font-size:15px;}
+.ivx .type-row{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);}
+.ivx table.sheet-items{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:6px;}
+.ivx table.sheet-items th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-soft);padding:10px 8px;border-bottom:2px solid var(--line);background:#fbfaf5;}
+.ivx table.sheet-items td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+.ivx table.sheet-items .r{text-align:right;white-space:nowrap;}
+.ivx .sheet-bottom{display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-top:18px;}
+.ivx .sheet-notes{flex:1;min-width:220px;font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+.ivx .sheet-notes strong{color:var(--ink);}
+.ivx .totals{min-width:250px;flex:0 0 auto;}
+.ivx .t-line{display:flex;justify-content:space-between;gap:24px;font-size:13.5px;padding:5px 0;color:var(--ink-soft);}
+.ivx .t-line.total{border-top:2px solid var(--moss-deep);margin-top:6px;padding-top:10px;font-size:17px;font-weight:700;color:var(--moss-deep);}
+.ivx .t-line.due{font-weight:700;color:var(--danger);font-size:15px;}
+.ivx .t-line.settled{font-weight:700;color:var(--leaf);}
+.ivx .stamp{display:inline-block;border:2.5px solid var(--leaf);color:var(--leaf);font-weight:800;letter-spacing:3px;font-size:18px;padding:4px 14px;border-radius:8px;transform:rotate(-6deg);margin-top:10px;opacity:.85;}
+.ivx .stamp.partial{border-color:var(--amber);color:var(--amber);}
+.ivx .stamp.unpaid{border-color:var(--danger);color:var(--danger);}
+.ivx .sheet-foot{margin-top:28px;padding-top:16px;border-top:1px dashed var(--line);text-align:center;font-size:12.5px;color:var(--ink-soft);line-height:1.6;}
+@media (max-width:640px){
+.ivx .inv-sheet{padding:26px 18px;}
+.ivx .parties{grid-template-columns:1fr;}
+.ivx .sheet-meta{text-align:left;}
+}
+.ivx .viewer-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.ivx .viewer-bar .vb-brand{font-family:'Fraunces',serif;font-size:18px;color:var(--moss-deep);}
+.ivx .viewer-msg{text-align:center;padding:60px 20px;color:var(--ink-soft);}
+.ivx .viewer-msg h2{color:var(--moss-deep);margin-bottom:8px;}
+
+.iv-viewer{max-width:860px;margin:0 auto;padding:28px 16px 60px;}
+.iv-subnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
+.iv-subtab{font-size:12.5px;font-weight:700;padding:9px 16px;border-radius:100px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:.15s;}
+.iv-subtab:hover{border-color:var(--leaf);color:var(--leaf);}
+.iv-subtab.active{background:var(--moss-deep);color:#fff;border-color:var(--moss-deep);}
+.ivx table.sheet-items td{white-space:normal;}
+@media print{
+  .ivx .no-print{display:none !important;}
+  body.previewing #app,body.previewing #authGate{display:none !important;}
+  body.previewing .ivm-backdrop{position:static;background:none;padding:0;display:block;backdrop-filter:none;overflow:visible;}
+  body.previewing .ivm-backdrop:not(.preview){display:none !important;}
+  body.previewing .ivm{box-shadow:none;width:100%;border-radius:0;margin:0;}
+  body.previewing .ivm-head{display:none;}
+  body.previewing .ivm-body{padding:0;}
+  .ivx .inv-sheet{border:none;border-radius:0;padding:10px 0;}
+  .iv-viewer{padding:0;max-width:none;}
+  body.viewer #toast{display:none !important;}
+}
 </style>
 </head>
 <body>
+<div id="iv_viewerRoot" class="ivx iv-viewer hidden"></div>
 
 <!-- ===================== AUTH GATE ===================== -->
 <div id="authGate">
@@ -493,6 +664,7 @@
     <button class="tab-btn" data-tab="history">History</button>
     <button class="tab-btn" data-tab="analytics">Analytics</button>
     <button class="tab-btn" data-tab="add">+ Add Subscriber</button>
+    <button class="tab-btn hidden" id="ivTabBtn" data-tab="invoices">🧾 Invoices</button>
   </nav>
 
   <main>
@@ -770,6 +942,176 @@
       </section>
     </section>
 
+
+    <!-- ---------- INVOICES (admins + invited emails only) ---------- -->
+    <section id="tab-invoices" class="tab-content hidden ivx">
+<div class="iv-subnav">
+  <button class="iv-subtab active" data-view="invoices">All invoices</button>
+  <button class="iv-subtab" data-view="new">+ New invoice</button>
+  <button class="iv-subtab" data-view="business">Business details</button>
+  <button class="iv-subtab hidden" id="iv_accessTabBtn" data-view="access">Access</button>
+</div>
+    <!-- ===== Invoices list ===== -->
+    <section id="iv_view_invoices" class="iv-view">
+      <div class="stat-row" id="iv_statRow"></div>
+      <section class="panel" style="padding:16px 20px;">
+        <div class="filter-bar">
+          <div class="filter-search">
+            <span>🔍</span>
+            <input type="text" id="iv_invSearch" placeholder="Search invoice no., customer, phone or item…">
+          </div>
+          <select id="iv_invFilterStatus">
+            <option value="">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="partial">Partially paid</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
+          <select id="iv_invFilterType">
+            <option value="">All order types</option>
+            <option value="subscription">Subscription</option>
+            <option value="custom">Custom bouquet</option>
+            <option value="website">Website bouquet</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>All invoices</h2></div>
+        <div id="iv_invoiceList"></div>
+      </section>
+    </section>
+
+    <!-- ===== New / edit invoice ===== -->
+    <section id="iv_view_new" class="iv-view hidden">
+      <section class="panel" style="padding:30px 32px;">
+        <div class="panel-head">
+          <div>
+            <h2 id="iv_formTitle">New invoice</h2>
+            <p class="subhead">Fill this in, then save and share it with your customer on WhatsApp.</p>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-label">Customer</span>
+          <div class="form-grid">
+            <div class="field"><label>Customer name</label><input type="text" id="iv_f_name" placeholder="e.g. Priya Menon"></div>
+            <div class="field"><label>Phone (WhatsApp)</label><input type="text" id="iv_f_phone" placeholder="e.g. 98450 12345"></div>
+            <div class="field"><label>Email (optional)</label><input type="email" id="iv_f_email" placeholder="name@example.com"></div>
+            <div class="field span-all"><label>Address</label><input type="text" id="iv_f_address" placeholder="Delivery / billing address"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-label">Order</span>
+          <input type="hidden" id="iv_f_type" value="custom">
+          <div class="chip-grid" id="iv_typeChips">
+            <button type="button" class="chip" data-value="subscription">🔁 Subscription</button>
+            <button type="button" class="chip" data-value="custom">💐 Custom bouquet</button>
+            <button type="button" class="chip" data-value="website">🛒 Website bouquet</button>
+            <button type="button" class="chip" data-value="other">📦 Other</button>
+          </div>
+          <div class="form-grid" style="margin-top:16px;">
+            <div class="field"><label>Invoice date</label><input type="date" id="iv_f_date"></div>
+            <div class="field"><label>Delivery date (optional)</label><input type="date" id="iv_f_deliveryDate"></div>
+            <div class="field"><label>Order reference (optional)</label><input type="text" id="iv_f_ref" placeholder="e.g. Shopify #1042"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-label">Items</span>
+          <div class="items-head"><div>Item</div><div>Qty</div><div>Rate (₹)</div><div style="text-align:right;">Amount</div><div></div></div>
+          <div id="iv_itemsWrap"></div>
+          <datalist id="iv_itemSuggestions">
+            <option value="Floral Harmony"></option>
+            <option value="Essence of the Earth"></option>
+            <option value="Chrysanthemum Fantasy"></option>
+            <option value="Chrysanthemum Fantasy Mini"></option>
+            <option value="Niranthara Tuberose"></option>
+            <option value="Custom bouquet"></option>
+          </datalist>
+          <button type="button" class="link-btn" id="iv_addItemBtn" style="margin-top:4px;">+ Add another item</button>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-label">Charges &amp; payment</span>
+          <div class="form-grid">
+            <div class="field"><label>Delivery charge (₹)</label><input type="number" min="0" step="0.01" id="iv_f_deliveryCharge" placeholder="0"></div>
+            <div class="field"><label>Discount (₹)</label><input type="number" min="0" step="0.01" id="iv_f_discount" placeholder="0"></div>
+            <div class="field"><label>Amount paid (₹)</label><input type="number" min="0" step="0.01" id="iv_f_paid" placeholder="0"></div>
+            <div class="field">
+              <label>Payment mode</label>
+              <select id="iv_f_payMode">
+                <option>UPI</option><option>Cash</option><option>Card</option><option>Bank transfer</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="summary-card" style="margin-top:20px;">
+            <div class="sum-line"><span>Subtotal</span><span id="iv_sumSubtotal">₹0</span></div>
+            <div class="sum-line"><span>Delivery</span><span id="iv_sumDelivery">₹0</span></div>
+            <div class="sum-line"><span>Discount</span><span id="iv_sumDiscount">−₹0</span></div>
+            <div class="sum-line big"><span>Total</span><span id="iv_sumTotal">₹0</span></div>
+            <div class="sum-line"><span>Paid</span><span id="iv_sumPaid">₹0</span></div>
+            <div class="sum-line"><span>Balance due</span><span id="iv_sumBalance">₹0</span></div>
+            <div style="margin-top:8px;"><span class="pill unpaid" id="iv_sumStatus">Unpaid</span></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <span class="form-section-label">Notes</span>
+          <div class="field"><textarea id="iv_f_notes" placeholder="Anything the customer should know (optional) — e.g. delivery instructions, thank-you note"></textarea></div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="iv_saveShareBtn">Save &amp; share</button>
+          <button type="button" class="btn btn-outline" id="iv_saveBtn">Save invoice</button>
+          <button type="button" class="btn btn-outline hidden" id="iv_cancelEditBtn">Cancel</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- ===== Business details ===== -->
+    <section id="iv_view_business" class="iv-view hidden">
+      <section class="panel" style="padding:30px 32px;">
+        <div class="panel-head">
+          <div>
+            <h2>Business details</h2>
+            <p class="subhead">These appear on every new invoice. Changing them won't alter invoices you've already created.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Business name</label><input type="text" id="iv_b_name"></div>
+          <div class="field"><label>Tagline</label><input type="text" id="iv_b_tagline"></div>
+          <div class="field span-all"><label>Address</label><input type="text" id="iv_b_address" placeholder="Shop / studio address"></div>
+          <div class="field"><label>Phone</label><input type="text" id="iv_b_phone"></div>
+          <div class="field"><label>Email</label><input type="text" id="iv_b_email"></div>
+          <div class="field"><label>Website</label><input type="text" id="iv_b_website"></div>
+          <div class="field"><label>GSTIN (optional)</label><input type="text" id="iv_b_gstin"></div>
+          <div class="field"><label>UPI ID (shown when payment is due)</label><input type="text" id="iv_b_upi" placeholder="e.g. hanabee@upi"></div>
+          <div class="field span-all"><label>Bank details (optional, shown when payment is due)</label><textarea id="iv_b_bank" placeholder="Account name, number, IFSC…"></textarea></div>
+          <div class="field span-all"><label>Invoice footer message</label><input type="text" id="iv_b_footer"></div>
+        </div>
+        <div class="form-actions"><button type="button" class="btn btn-primary" id="iv_saveBusinessBtn">Save business details</button></div>
+      </section>
+    </section>
+
+    <!-- ===== Access (owners only) ===== -->
+    <section id="iv_view_access" class="iv-view hidden">
+      <section class="panel" style="padding:30px 32px;">
+        <div class="panel-head">
+          <div>
+            <h2>Who can use this page</h2>
+            <p class="subhead">Add the Google email of anyone who should be able to create and share invoices. They'll only see invoices — nothing from the subscription tracker.</p>
+          </div>
+        </div>
+        <div class="add-email-row">
+          <input type="email" id="iv_accessEmail" placeholder="name@gmail.com">
+          <button type="button" class="btn btn-primary" id="iv_accessAddBtn">Add email</button>
+        </div>
+        <div id="iv_accessList" style="margin-top:14px;"></div>
+      </section>
+    </section>
+  
+    </section>
   </main>
 </div>
 
@@ -843,19 +1185,50 @@ googleSignInBtn.addEventListener('click', () => {
 
 document.getElementById('signOutBtn').addEventListener('click', () => auth.signOut());
 
-auth.onAuthStateChanged(user => {
-  if (user && ALLOWED_EMAILS.includes(user.email)) {
-    authGate.classList.add('hidden');
-    appEl.classList.remove('hidden');
-    document.getElementById('userChip').textContent = user.email;
-    initApp();
-  } else if (user) {
+// ?v=<id> opens a customer's invoice with no login (handled by the invoices module)
+const IV_VIEW_ID = new URLSearchParams(location.search).get('v');
+const TRACKER_TAB_NAMES = ['dashboard', 'calendar', 'subscribers', 'history', 'analytics', 'add'];
+
+// 'owner' = full tracker + invoices; 'invoice' = invited for invoices only; 'none' = no access
+async function resolveRole(user){
+  const email = (user.email || '').toLowerCase();
+  if (ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(email)) return 'owner';
+  try {
+    const snap = await db.collection('hb_invoice_access').doc(email).get();
+    if (snap.exists) return 'invoice';
+  } catch (e) { console.error('Access check failed:', e); }
+  return 'none';
+}
+
+if (!IV_VIEW_ID) auth.onAuthStateChanged(async user => {
+  if (!user){
+    authGate.classList.remove('hidden');
+    appEl.classList.add('hidden');
+    return;
+  }
+  const role = await resolveRole(user);
+  if (role === 'none'){
     authError.textContent = "This account isn't authorized for Hanabee tools.";
     authError.classList.remove('hidden');
     auth.signOut();
+    return;
+  }
+  authError.classList.add('hidden');
+  authGate.classList.add('hidden');
+  appEl.classList.remove('hidden');
+  document.getElementById('userChip').textContent = user.email;
+  const ivTabBtn = document.getElementById('ivTabBtn');
+  ivTabBtn.classList.remove('hidden');
+  window.HBInvoices.init(user, role === 'owner');
+  if (role === 'owner'){
+    initApp();
   } else {
-    authGate.classList.remove('hidden');
-    appEl.classList.add('hidden');
+    // invited for invoices only: hide every tracker tab and open Invoices
+    document.querySelectorAll('.tab-btn').forEach(b => { if (TRACKER_TAB_NAMES.includes(b.dataset.tab)) b.classList.add('hidden'); });
+    document.getElementById('notifyBtn').classList.add('hidden');
+    document.querySelector('.brand-text h1').textContent = 'Invoices';
+    document.querySelector('.brand-text span').textContent = 'Hanabee offline orders';
+    ivTabBtn.click();
   }
 });
 
@@ -948,6 +1321,18 @@ function buildDispatchMessage(sub, delivery){
   return `Hi ${sub.name}! 🚚🌸 Your *${delivery.product}* has been dispatched and will arrive today${delivery.timeSlot ? ' between *' + delivery.timeSlot + '*' : ''}.
 
 Fresh blooms, freshly on their way to you! We'd love it if you shared a photo once they arrive 💛
+
+With love,
+Team Hanabee 🐝`;
+}
+
+function buildDeliveredMessage(sub, delivery){
+  const nextDelivery = deliveries
+    .filter(d => d.subscriberId === sub.id && d.status === 'pending')
+    .sort((a,b) => a.dueDate - b.dueDate)[0];
+  return `Hi ${sub.name}! 🌸 Your *${delivery.product}* has been delivered — we hope it brightened your day!
+
+Thank you for being a Hanabee subscriber 💛${nextDelivery ? `\n\nYour next delivery is scheduled for *${fmtDate(nextDelivery.dueDate)}*${nextDelivery.timeSlot ? ' between *' + nextDelivery.timeSlot + '*' : ''}.` : ''}
 
 With love,
 Team Hanabee 🐝`;
@@ -1942,10 +2327,12 @@ function openMessageModal(sub, delivery){
   const scheduleMsg = buildScheduleMessage(sub);
   const reminderMsg = buildReminderMessage(sub, delivery);
   const dispatchMsg = buildDispatchMessage(sub, delivery);
+  const deliveredMsg = buildDeliveredMessage(sub, delivery);
   const templates = [
     { key: 'schedule', label: 'Full Schedule', text: scheduleMsg },
     { key: 'reminder', label: '1-Day Reminder', text: reminderMsg },
     { key: 'dispatch', label: 'Dispatch Today', text: dispatchMsg },
+    { key: 'delivered', label: 'Delivered', text: deliveredMsg },
   ];
 
   const backdrop = document.createElement('div');
@@ -1964,10 +2351,10 @@ function openMessageModal(sub, delivery){
       <div class="msg-tabs" id="msgTabs"></div>
       <div id="msgCardWrap"></div>
       <div class="msg-copyall">
-        <p>Need to send more than one? Copy all three templates together.</p>
+        <p>Need to send more than one? Copy all four templates together.</p>
         <button class="copy-btn secondary" id="copyAllBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-          Copy all 3
+          Copy all 4
         </button>
       </div>
     </div>
@@ -1979,7 +2366,7 @@ function openMessageModal(sub, delivery){
 
   const tabsEl = modal.querySelector('#msgTabs');
   const cardWrap = modal.querySelector('#msgCardWrap');
-  let activeKey = 'schedule';
+  let activeKey = delivery.status === 'delivered' ? 'delivered' : 'schedule';
 
   function renderActive(){
     tabsEl.innerHTML = '';
@@ -2522,6 +2909,626 @@ document.getElementById('notifyBtn').addEventListener('click', () => {
 
 // re-check every 30 minutes in case the tab stays open across midnight/into the day
 setInterval(() => { if (appInited) renderDashboard(); }, 30 * 60 * 1000);
+
+/* ================= Invoices module (separate scope) ================= */
+(function(){
+
+const OWNER_EMAILS = ALLOWED_EMAILS.map(e => e.toLowerCase());
+
+const INVOICES = 'hb_invoices';
+const ACCESS = 'hb_invoice_access';
+const META = 'hb_invoice_meta';
+
+const TYPES = { subscription: 'Subscription', custom: 'Custom bouquet', website: 'Website bouquet', other: 'Other' };
+const DEFAULT_BUSINESS = {
+  name: 'Hanabee', tagline: 'Fresh flowers, delivered with love', address: '', phone: '', email: '',
+  website: 'hanabee.in', gstin: '', upi: '', bank: '', footer: 'Thank you for choosing Hanabee 🌸'
+};
+
+/* ---------------- helpers ---------------- */
+const $ = id => document.getElementById('iv_' + id);
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function num(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : 0; }
+function r2(n){ return Math.round((n + Number.EPSILON) * 100) / 100; }
+function inr(n){
+  n = Number(n) || 0;
+  const whole = Number.isInteger(n);
+  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 });
+}
+function isoToday(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDate(iso){
+  if (!iso) return '';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+function normalizePhone(p){
+  let d = String(p || '').replace(/\D/g, '').replace(/^0+/, '');
+  if (d.length === 10) d = '91' + d;
+  return d;
+}
+function calcTotals(items, delivery, discount, paid){
+  const subtotal = r2((items || []).reduce((s, i) => s + num(i.qty) * num(i.price), 0));
+  const total = r2(Math.max(0, subtotal + num(delivery) - num(discount)));
+  const amountPaid = r2(Math.max(0, num(paid)));
+  const balance = r2(Math.max(0, total - amountPaid));
+  let status = 'unpaid';
+  if (total > 0 && amountPaid >= total) status = 'paid';
+  else if (amountPaid > 0) status = 'partial';
+  return { subtotal, total, amountPaid, balance, status };
+}
+function statusLabel(s){ return s === 'paid' ? 'Paid' : s === 'partial' ? 'Partially paid' : 'Unpaid'; }
+function invoiceLink(id){ return `${location.origin}${location.pathname}?v=${id}`; }
+function copyText(text, btn){
+  const done = () => {
+    if (!btn) { toast('Copied'); return; }
+    const old = btn.textContent; btn.textContent = 'Copied ✓';
+    setTimeout(() => { btn.textContent = old; }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(() => toast('Could not copy — please copy manually'));
+  } else { toast('Could not copy — please copy manually'); }
+}
+
+/* ---------------- invoice sheet (shared by admin preview + customer view) ---------------- */
+function lines(arr){ return arr.filter(Boolean).map(esc).join('<br>'); }
+
+function invoiceSheetHTML(inv){
+  const b = Object.assign({}, DEFAULT_BUSINESS, inv.business || {});
+  const c = inv.customer || {};
+  const t = calcTotals(inv.items, inv.deliveryCharge, inv.discount, inv.amountPaid);
+  const rows = (inv.items || []).map(i => `
+    <tr>
+      <td>${esc(i.desc)}</td>
+      <td class="r">${esc(i.qty)}</td>
+      <td class="r">${inr(i.price)}</td>
+      <td class="r"><strong>${inr(r2(num(i.qty) * num(i.price)))}</strong></td>
+    </tr>`).join('');
+
+  const payInfo = (t.balance > 0 && (b.upi || b.bank)) ? `
+    <div style="margin-top:12px;"><strong>How to pay</strong><br>
+      ${b.upi ? `UPI: <span class="mono">${esc(b.upi)}</span><br>` : ''}
+      ${b.bank ? esc(b.bank).replace(/\n/g, '<br>') : ''}
+    </div>` : '';
+
+  return `
+  <div class="inv-sheet">
+    <div class="sheet-head">
+      <div class="sheet-brand">
+        <div class="sheet-logo">🌸</div>
+        <div><div class="sheet-biz">${esc(b.name)}</div><div class="sheet-tag">${esc(b.tagline)}</div></div>
+      </div>
+      <div class="sheet-meta">
+        <div class="sheet-title">INVOICE</div>
+        <div class="sheet-no">${esc(inv.number || '')}</div>
+        <div>Date: ${esc(fmtDate(inv.invoiceDate))}</div>
+        ${inv.deliveryDate ? `<div>Delivery: ${esc(fmtDate(inv.deliveryDate))}</div>` : ''}
+      </div>
+    </div>
+
+    <div class="parties">
+      <div>
+        <div class="party-label">Billed to</div>
+        <div class="party-body"><strong>${esc(c.name)}</strong><br>${lines([c.phone, c.email, c.address])}</div>
+      </div>
+      <div>
+        <div class="party-label">From</div>
+        <div class="party-body">${lines([b.address, b.phone, b.email, b.website, b.gstin ? 'GSTIN: ' + b.gstin : ''])}</div>
+      </div>
+    </div>
+
+    <div class="type-row">
+      <span class="badge t-${esc(inv.orderType || 'other')}">${esc(TYPES[inv.orderType] || 'Other')}</span>
+      ${inv.reference ? `<span>Ref: ${esc(inv.reference)}</span>` : ''}
+    </div>
+
+    <table class="sheet-items">
+      <thead><tr><th>Item</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <div class="sheet-bottom">
+      <div class="sheet-notes">
+        ${inv.notes ? `<div><strong>Notes</strong><br>${esc(inv.notes).replace(/\n/g, '<br>')}</div>` : ''}
+        ${payInfo}
+      </div>
+      <div class="totals">
+        <div class="t-line"><span>Subtotal</span><span>${inr(t.subtotal)}</span></div>
+        ${num(inv.deliveryCharge) ? `<div class="t-line"><span>Delivery</span><span>${inr(num(inv.deliveryCharge))}</span></div>` : ''}
+        ${num(inv.discount) ? `<div class="t-line"><span>Discount</span><span>−${inr(num(inv.discount))}</span></div>` : ''}
+        <div class="t-line total"><span>Total</span><span>${inr(t.total)}</span></div>
+        ${t.amountPaid > 0 ? `<div class="t-line"><span>Paid${inv.paymentMode ? ' (' + esc(inv.paymentMode) + ')' : ''}</span><span>${inr(t.amountPaid)}</span></div>` : ''}
+        ${t.balance > 0 ? `<div class="t-line due"><span>Balance due</span><span>${inr(t.balance)}</span></div>` : `<div class="t-line settled"><span>Fully paid</span><span>✓</span></div>`}
+        <div style="text-align:right;"><span class="stamp ${t.status}">${esc(statusLabel(t.status)).toUpperCase()}</span></div>
+      </div>
+    </div>
+
+    <div class="sheet-foot">${esc(b.footer)}</div>
+  </div>`;
+}
+
+/* ---------------- WhatsApp message ---------------- */
+function buildWhatsAppMessage(inv){
+  const t = calcTotals(inv.items, inv.deliveryCharge, inv.discount, inv.amountPaid);
+  const itemLines = (inv.items || []).map(i => `• ${i.desc} × ${i.qty} — ${inr(r2(num(i.qty) * num(i.price)))}`).join('\n');
+  const extra = [];
+  if (num(inv.deliveryCharge)) extra.push(`Delivery: ${inr(num(inv.deliveryCharge))}`);
+  if (num(inv.discount)) extra.push(`Discount: −${inr(num(inv.discount))}`);
+  const payLine = t.balance > 0
+    ? (t.amountPaid > 0 ? `Paid: ${inr(t.amountPaid)}\n*Balance due: ${inr(t.balance)}*` : `*Amount due: ${inr(t.balance)}*`)
+    : `Payment received in full — thank you! 💛`;
+  const link = inv.shareEnabled === false ? '' : `\n\nView or download your invoice here:\n${invoiceLink(inv.id)}`;
+  return `Hi ${inv.customer.name}! 🌸 Thank you for your order with Hanabee.
+
+Here's your invoice *${inv.number}* dated ${fmtDate(inv.invoiceDate)}:
+
+${itemLines}${extra.length ? '\n' + extra.join('\n') : ''}
+
+*Total: ${inr(t.total)}*
+${payLine}${link}
+
+With love,
+Team Hanabee 🐝`;
+}
+
+/* ---------------- state ---------------- */
+let currentUser = null, isOwner = false, appStarted = false;
+let invoices = [], business = Object.assign({}, DEFAULT_BUSINESS), accessList = [];
+let editingId = null, formItems = [], redrawPreview = null;
+
+/* ---------------- customer view mode ---------------- */
+const viewId = new URLSearchParams(location.search).get('v');
+
+async function runViewer(id){
+  document.body.classList.add('viewer');
+  document.getElementById('authGate').classList.add('hidden');
+  const root = $('viewerRoot');
+  root.classList.remove('hidden');
+  const unavailable = () => {
+    root.innerHTML = `<div class="viewer-msg"><h2>Invoice not available</h2><p>This link may be incorrect or is no longer active. Please contact Hanabee for a fresh copy.</p></div>`;
+  };
+  try {
+    const snap = await db.collection(INVOICES).doc(id).get();
+    if (!snap.exists) return unavailable();
+    const inv = Object.assign({ id: snap.id }, snap.data());
+    document.title = `Invoice ${inv.number || ''} — ${(inv.business && inv.business.name) || 'Hanabee'}`;
+    root.innerHTML = `
+      <div class="viewer-bar no-print">
+        <div class="vb-brand">🌸 ${esc((inv.business && inv.business.name) || 'Hanabee')}</div>
+        <button class="btn btn-primary" id="iv_viewerPrint">Download / Print PDF</button>
+      </div>
+      ${invoiceSheetHTML(inv)}`;
+    $('viewerPrint').addEventListener('click', () => window.print());
+  } catch (err){
+    console.error('Viewer load failed:', err);
+    unavailable();
+  }
+}
+
+/* ---------------- sub-navigation inside the Invoices tab ---------------- */
+function showView(name){
+  document.querySelectorAll('.iv-subtab').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  document.querySelectorAll('.iv-view').forEach(v => v.classList.toggle('hidden', v.id !== 'iv_view_' + name));
+}
+document.querySelectorAll('.iv-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.view === 'new' && !editingId) resetForm();
+    showView(btn.dataset.view);
+  });
+});
+
+/* ---------------- called by the tracker once someone has signed in ---------------- */
+function init(user, owner){
+  currentUser = user;
+  isOwner = owner;
+  $('accessTabBtn').classList.toggle('hidden', !owner);
+  startApp();
+}
+
+/* ---------------- data listeners ---------------- */
+function startApp(){
+  if (appStarted) return;
+  appStarted = true;
+
+  db.collection(INVOICES).onSnapshot(snap => {
+    invoices = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    renderInvoices();
+    if (redrawPreview) redrawPreview();
+  }, err => { console.error(err); toast('Could not load invoices — check Firestore rules'); });
+
+  db.collection(META).doc('business').onSnapshot(snap => {
+    business = Object.assign({}, DEFAULT_BUSINESS, snap.exists ? snap.data() : {});
+    fillBusinessForm();
+  }, err => console.error('Business listener error:', err));
+
+  if (isOwner){
+    db.collection(ACCESS).onSnapshot(snap => {
+      accessList = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+      renderAccess();
+    }, err => { console.error(err); toast('Could not load the access list'); });
+  }
+  resetForm();
+}
+
+/* ---------------- invoice list ---------------- */
+function renderInvoices(){
+  const all = invoices.map(i => Object.assign({}, i, { _t: calcTotals(i.items, i.deliveryCharge, i.discount, i.amountPaid) }));
+  const billed = r2(all.reduce((s, i) => s + i._t.total, 0));
+  const collected = r2(all.reduce((s, i) => s + Math.min(i._t.amountPaid, i._t.total), 0));
+  const outstanding = r2(all.reduce((s, i) => s + i._t.balance, 0));
+
+  const stats = [
+    { label: 'Invoices', num: all.length, cls: '' },
+    { label: 'Billed', num: inr(billed), cls: '' },
+    { label: 'Collected', num: inr(collected), cls: 'good' },
+    { label: 'Outstanding', num: inr(outstanding), cls: outstanding > 0 ? 'warn' : '' },
+  ];
+  $('statRow').innerHTML = stats.map(s => `<div class="stat-card ${s.cls}"><div class="num">${s.num}</div><div class="label">${s.label}</div></div>`).join('');
+
+  const q = ($('invSearch').value || '').toLowerCase().trim();
+  const fs = $('invFilterStatus').value, ft = $('invFilterType').value;
+  let list = all;
+  if (q) list = list.filter(i => [i.number, i.customer && i.customer.name, i.customer && i.customer.phone, i.reference, (i.items || []).map(x => x.desc).join(' ')].join(' ').toLowerCase().includes(q));
+  if (fs) list = list.filter(i => i._t.status === fs);
+  if (ft) list = list.filter(i => i.orderType === ft);
+  list.sort((a, b) => (b.seq || 0) - (a.seq || 0));
+
+  const wrap = $('invoiceList');
+  wrap.innerHTML = '';
+  if (!list.length){
+    wrap.innerHTML = `<div class="empty">${all.length ? 'No invoices match these filters.' : 'No invoices yet — create your first one from the “+ New invoice” tab.'}</div>`;
+    return;
+  }
+  list.forEach(inv => {
+    const row = document.createElement('div');
+    row.className = 'inv-row';
+    const c = inv.customer || {};
+    row.innerHTML = `
+      <div><div class="inv-no">${esc(inv.number)}</div><div class="inv-sub">${esc(fmtDate(inv.invoiceDate))}</div></div>
+      <div><div class="inv-cust">${esc(c.name)}</div><div class="inv-sub">${esc(c.phone || '')} <span class="badge t-${esc(inv.orderType || 'other')}" style="margin-left:6px;">${esc(TYPES[inv.orderType] || 'Other')}</span></div></div>
+      <div><div class="inv-amt">${inr(inv._t.total)}</div>${inv._t.balance > 0 ? `<div class="inv-sub">Due ${inr(inv._t.balance)}</div>` : ''}</div>
+      <div><span class="pill ${inv._t.status}">${esc(statusLabel(inv._t.status))}</span></div>
+      <div class="row-actions"></div>`;
+    const actions = row.querySelector('.row-actions');
+    const mk = (cls, text, fn) => {
+      const b = document.createElement('button');
+      b.className = 'act-btn ' + cls; b.textContent = text;
+      b.addEventListener('click', e => { e.stopPropagation(); fn(); });
+      actions.appendChild(b);
+    };
+    mk('share', 'Share', () => openShareModal(inv.id));
+    mk('', 'Edit', () => startEdit(inv));
+    mk('del', 'Delete', () => deleteInvoice(inv));
+    row.addEventListener('click', () => openPreview(inv.id));
+    wrap.appendChild(row);
+  });
+}
+['invSearch'].forEach(id => $(id).addEventListener('input', renderInvoices));
+['invFilterStatus', 'invFilterType'].forEach(id => $(id).addEventListener('change', renderInvoices));
+
+async function deleteInvoice(inv){
+  if (!confirm(`Delete invoice ${inv.number} for ${inv.customer && inv.customer.name}?\n\nThe customer's share link will stop working. This can't be undone.`)) return;
+  try { await db.collection(INVOICES).doc(inv.id).delete(); toast(`Deleted ${inv.number}`); }
+  catch (err){ console.error(err); toast('Could not delete — check Firestore rules'); }
+}
+
+/* ---------------- modals ---------------- */
+function openModal({ title, subtitle, wide, preview }){
+  const backdrop = document.createElement('div');
+  backdrop.className = 'ivx ivm-backdrop' + (preview ? ' preview' : '');
+  const modal = document.createElement('div');
+  modal.className = 'ivm' + (wide ? ' wide' : '');
+  modal.innerHTML = `
+    <div class="ivm-head no-print"><button class="ivm-close" type="button">✕</button>
+      <h3>${esc(title)}</h3>${subtitle ? `<p>${esc(subtitle)}</p>` : ''}</div>
+    <div class="ivm-body"></div>`;
+  backdrop.appendChild(modal);
+  document.body.appendChild(backdrop);
+  if (preview) document.body.classList.add('previewing');
+  const close = () => {
+    backdrop.remove();
+    if (preview){ document.body.classList.remove('previewing'); redrawPreview = null; }
+  };
+  modal.querySelector('.ivm-close').addEventListener('click', close);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+  return { body: modal.querySelector('.ivm-body'), close, modal };
+}
+
+function openPreview(id){
+  const first = invoices.find(i => i.id === id);
+  if (!first) return;
+  const m = openModal({ title: first.number, subtitle: first.customer && first.customer.name, wide: true, preview: true });
+  function draw(){
+    const inv = invoices.find(i => i.id === id);
+    if (!inv){ m.close(); return; }
+    const t = calcTotals(inv.items, inv.deliveryCharge, inv.discount, inv.amountPaid);
+    m.body.innerHTML = `
+      <div class="action-bar no-print">
+        <button class="btn btn-primary" data-a="share">Share with customer</button>
+        <button class="btn btn-outline" data-a="print">Print / Save PDF</button>
+        <button class="btn btn-outline" data-a="edit">Edit</button>
+        ${t.balance > 0 ? '<button class="btn btn-outline" data-a="paid">Mark as fully paid</button>' : ''}
+      </div>
+      ${invoiceSheetHTML(inv)}`;
+    m.body.querySelector('[data-a="share"]').addEventListener('click', () => { m.close(); openShareModal(id); });
+    m.body.querySelector('[data-a="print"]').addEventListener('click', () => window.print());
+    m.body.querySelector('[data-a="edit"]').addEventListener('click', () => { m.close(); startEdit(inv); });
+    const paidBtn = m.body.querySelector('[data-a="paid"]');
+    if (paidBtn) paidBtn.addEventListener('click', async () => {
+      try { await db.collection(INVOICES).doc(id).update({ amountPaid: t.total, balance: 0, paymentStatus: 'paid' }); toast('Marked as fully paid'); }
+      catch (err){ console.error(err); toast('Could not update — check Firestore rules'); }
+    });
+  }
+  redrawPreview = draw;
+  draw();
+}
+
+function openShareModal(id){
+  const first = invoices.find(i => i.id === id);
+  if (!first) return;
+  const m = openModal({ title: 'Share invoice', subtitle: `${first.number} · ${first.customer && first.customer.name}` });
+  const cur = () => invoices.find(i => i.id === id) || first;
+
+  function draw(){
+    const inv = cur();
+    const link = invoiceLink(id);
+    const msg = buildWhatsAppMessage(inv);
+    const phone = normalizePhone(inv.customer && inv.customer.phone);
+    m.body.innerHTML = `
+      <span class="block-label" style="margin-top:0;">WhatsApp message</span>
+      <div class="msg-card">${esc(msg)}</div>
+      <div class="action-bar" style="margin-bottom:0;">
+        <button class="btn btn-wa" id="shWa">Open in WhatsApp</button>
+        <button class="btn btn-outline" id="shCopyMsg">Copy message</button>
+      </div>
+      ${phone ? '' : '<p class="note">No phone number on this invoice, so WhatsApp will ask you to choose a contact.</p>'}
+
+      <span class="block-label">Invoice link</span>
+      <div class="link-box">
+        <input type="text" readonly value="${esc(link)}" id="shLink">
+        <button class="btn btn-outline" id="shCopyLink">Copy link</button>
+      </div>
+      <label class="toggle-row"><input type="checkbox" id="shEnabled" ${inv.shareEnabled === false ? '' : 'checked'}> Link is active — anyone with it can view this invoice</label>
+      <p class="note">Switch the link off any time and the customer will no longer be able to open it.</p>
+
+      <div class="action-bar" style="margin:18px 0 0;">
+        <button class="btn btn-outline" id="shPreview">Preview / Print PDF</button>
+      </div>`;
+    m.body.querySelector('#shWa').addEventListener('click', () => {
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank', 'noopener');
+    });
+    m.body.querySelector('#shCopyMsg').addEventListener('click', e => copyText(msg, e.currentTarget));
+    m.body.querySelector('#shCopyLink').addEventListener('click', e => copyText(link, e.currentTarget));
+    m.body.querySelector('#shPreview').addEventListener('click', () => { m.close(); openPreview(id); });
+    m.body.querySelector('#shEnabled').addEventListener('change', async e => {
+      const on = e.target.checked;
+      try { await db.collection(INVOICES).doc(id).update({ shareEnabled: on }); toast(on ? 'Link activated' : 'Link switched off'); }
+      catch (err){ console.error(err); e.target.checked = !on; toast('Could not update the link'); }
+    });
+  }
+  draw();
+}
+
+/* ---------------- invoice form ---------------- */
+function setChip(containerId, hiddenId, value){
+  $(hiddenId).value = value;
+  $(containerId).querySelectorAll('.chip').forEach(c => c.classList.toggle('selected', c.dataset.value === value));
+}
+$('typeChips').querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => setChip('typeChips', 'f_type', c.dataset.value)));
+
+function renderItems(){
+  const wrap = $('itemsWrap');
+  wrap.innerHTML = '';
+  formItems.forEach((it, idx) => {
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <input class="it-desc" list="iv_itemSuggestions" placeholder="Item (e.g. Floral Harmony – weekly, 1 month)" value="${esc(it.desc)}">
+      <input class="it-qty" type="number" min="0" step="1" value="${esc(it.qty)}">
+      <input class="it-price" type="number" min="0" step="0.01" placeholder="Rate" value="${esc(it.price)}">
+      <div class="it-amt"></div>
+      <button type="button" class="icon-x" title="Remove item">✕</button>`;
+    const amt = row.querySelector('.it-amt');
+    const refresh = () => { amt.textContent = inr(r2(num(it.qty) * num(it.price))); updateTotals(); };
+    row.querySelector('.it-desc').addEventListener('input', e => { it.desc = e.target.value; });
+    row.querySelector('.it-qty').addEventListener('input', e => { it.qty = e.target.value; refresh(); });
+    row.querySelector('.it-price').addEventListener('input', e => { it.price = e.target.value; refresh(); });
+    row.querySelector('.icon-x').addEventListener('click', () => {
+      if (formItems.length === 1){ toast('An invoice needs at least one item'); return; }
+      formItems.splice(idx, 1); renderItems();
+    });
+    amt.textContent = inr(r2(num(it.qty) * num(it.price)));
+    wrap.appendChild(row);
+  });
+  updateTotals();
+}
+$('addItemBtn').addEventListener('click', () => { formItems.push({ desc: '', qty: 1, price: '' }); renderItems(); });
+['f_deliveryCharge', 'f_discount', 'f_paid'].forEach(id => $(id).addEventListener('input', updateTotals));
+
+function updateTotals(){
+  const t = calcTotals(formItems, $('f_deliveryCharge').value, $('f_discount').value, $('f_paid').value);
+  $('sumSubtotal').textContent = inr(t.subtotal);
+  $('sumDelivery').textContent = inr(num($('f_deliveryCharge').value));
+  $('sumDiscount').textContent = '−' + inr(num($('f_discount').value));
+  $('sumTotal').textContent = inr(t.total);
+  $('sumPaid').textContent = inr(t.amountPaid);
+  $('sumBalance').textContent = inr(t.balance);
+  const pill = $('sumStatus');
+  pill.className = 'pill ' + t.status;
+  pill.textContent = statusLabel(t.status);
+}
+
+function resetForm(){
+  editingId = null;
+  $('formTitle').textContent = 'New invoice';
+  ['f_name', 'f_phone', 'f_email', 'f_address', 'f_ref', 'f_deliveryDate', 'f_deliveryCharge', 'f_discount', 'f_paid', 'f_notes'].forEach(id => { $(id).value = ''; });
+  $('f_date').value = isoToday();
+  $('f_payMode').value = 'UPI';
+  setChip('typeChips', 'f_type', 'custom');
+  formItems = [{ desc: '', qty: 1, price: '' }];
+  $('cancelEditBtn').classList.add('hidden');
+  $('saveBtn').textContent = 'Save invoice';
+  $('saveShareBtn').textContent = 'Save & share';
+  renderItems();
+}
+
+function startEdit(inv){
+  editingId = inv.id;
+  const c = inv.customer || {};
+  $('formTitle').textContent = `Edit ${inv.number}`;
+  $('f_name').value = c.name || ''; $('f_phone').value = c.phone || '';
+  $('f_email').value = c.email || ''; $('f_address').value = c.address || '';
+  $('f_ref').value = inv.reference || '';
+  $('f_date').value = inv.invoiceDate || isoToday();
+  $('f_deliveryDate').value = inv.deliveryDate || '';
+  $('f_deliveryCharge').value = inv.deliveryCharge || '';
+  $('f_discount').value = inv.discount || '';
+  $('f_paid').value = inv.amountPaid || '';
+  $('f_payMode').value = inv.paymentMode || 'UPI';
+  $('f_notes').value = inv.notes || '';
+  setChip('typeChips', 'f_type', inv.orderType || 'other');
+  formItems = (inv.items || []).map(i => ({ desc: i.desc, qty: i.qty, price: i.price }));
+  if (!formItems.length) formItems = [{ desc: '', qty: 1, price: '' }];
+  $('cancelEditBtn').classList.remove('hidden');
+  $('saveBtn').textContent = 'Save changes';
+  $('saveShareBtn').textContent = 'Save changes & share';
+  renderItems();
+  showView('new');
+}
+$('cancelEditBtn').addEventListener('click', () => { resetForm(); showView('invoices'); });
+
+async function saveInvoice(andShare){
+  const name = $('f_name').value.trim();
+  if (!name){ toast('Please enter the customer name'); return; }
+  const items = formItems.map(i => ({ desc: String(i.desc || '').trim(), qty: num(i.qty), price: num(i.price) })).filter(i => i.desc);
+  if (!items.length){ toast('Add at least one item with a description'); return; }
+  if (items.some(i => i.qty <= 0)){ toast('Quantity must be more than 0'); return; }
+
+  const t = calcTotals(items, $('f_deliveryCharge').value, $('f_discount').value, $('f_paid').value);
+  const data = {
+    customer: { name, phone: $('f_phone').value.trim(), email: $('f_email').value.trim(), address: $('f_address').value.trim() },
+    orderType: $('f_type').value,
+    reference: $('f_ref').value.trim(),
+    invoiceDate: $('f_date').value || isoToday(),
+    deliveryDate: $('f_deliveryDate').value || '',
+    items,
+    deliveryCharge: r2(num($('f_deliveryCharge').value)),
+    discount: r2(num($('f_discount').value)),
+    subtotal: t.subtotal, total: t.total, amountPaid: t.amountPaid, balance: t.balance,
+    paymentStatus: t.status,
+    paymentMode: $('f_payMode').value,
+    notes: $('f_notes').value.trim()
+  };
+  const buttons = [$('saveBtn'), $('saveShareBtn')];
+  buttons.forEach(b => { b.disabled = true; });
+  try {
+    let saved;
+    const stamp = firebase.firestore.FieldValue.serverTimestamp();
+    if (editingId){
+      await db.collection(INVOICES).doc(editingId).update(Object.assign({}, data, { updatedAt: stamp }));
+      saved = Object.assign({}, invoices.find(i => i.id === editingId), data, { id: editingId });
+      toast(`Updated ${saved.number}`);
+    } else {
+      const counterRef = db.collection(META).doc('counter');
+      const invRef = db.collection(INVOICES).doc();
+      const biz = Object.assign({}, business);
+      let seq = 0;
+      await db.runTransaction(async tx => {
+        const snap = await tx.get(counterRef);
+        seq = ((snap.exists && snap.data().last) || 0) + 1;
+        tx.set(counterRef, { last: seq });
+        tx.set(invRef, Object.assign({}, data, {
+          seq, number: 'HB-' + String(seq).padStart(4, '0'),
+          business: biz, shareEnabled: true,
+          createdBy: (currentUser && currentUser.email) || '', createdAt: stamp
+        }));
+      });
+      saved = Object.assign({}, data, { id: invRef.id, seq, number: 'HB-' + String(seq).padStart(4, '0'), business: biz, shareEnabled: true });
+      toast(`Created ${saved.number}`);
+    }
+    resetForm();
+    showView('invoices');
+    if (andShare){
+      // the live listener may not have delivered the new doc yet — make sure the modal can find it
+      if (!invoices.find(i => i.id === saved.id)) invoices.push(saved);
+      openShareModal(saved.id);
+    }
+  } catch (err){
+    console.error('Save invoice failed:', err);
+    toast('Could not save — check your connection / Firestore rules');
+  } finally {
+    buttons.forEach(b => { b.disabled = false; });
+  }
+}
+$('saveBtn').addEventListener('click', () => saveInvoice(false));
+$('saveShareBtn').addEventListener('click', () => saveInvoice(true));
+
+/* ---------------- business details ---------------- */
+const BIZ_FIELDS = { b_name: 'name', b_tagline: 'tagline', b_address: 'address', b_phone: 'phone', b_email: 'email', b_website: 'website', b_gstin: 'gstin', b_upi: 'upi', b_bank: 'bank', b_footer: 'footer' };
+function fillBusinessForm(){
+  if (document.activeElement && Object.keys(BIZ_FIELDS).map(k => 'iv_' + k).includes(document.activeElement.id)) return; // don't clobber typing
+  Object.entries(BIZ_FIELDS).forEach(([id, key]) => { $(id).value = business[key] || ''; });
+}
+$('saveBusinessBtn').addEventListener('click', async () => {
+  const data = {};
+  Object.entries(BIZ_FIELDS).forEach(([id, key]) => { data[key] = $(id).value.trim(); });
+  if (!data.name){ toast('Business name is required'); return; }
+  try { await db.collection(META).doc('business').set(data); toast('Business details saved'); }
+  catch (err){ console.error(err); toast('Could not save — check Firestore rules'); }
+});
+
+/* ---------------- access list (owners) ---------------- */
+function renderAccess(){
+  const wrap = $('accessList');
+  wrap.innerHTML = '';
+  const addRow = (email, sub, onRemove) => {
+    const row = document.createElement('div');
+    row.className = 'access-row';
+    row.innerHTML = `<div class="access-avatar">${esc((email[0] || '?').toUpperCase())}</div>
+      <div class="access-main"><div class="access-email">${esc(email)}</div><div class="inv-sub">${esc(sub)}</div></div>`;
+    if (onRemove){
+      const b = document.createElement('button');
+      b.className = 'act-btn del'; b.textContent = 'Remove';
+      b.addEventListener('click', onRemove);
+      row.appendChild(b);
+    }
+    wrap.appendChild(row);
+  };
+  OWNER_EMAILS.forEach(e => addRow(e, 'Admin · always has access and can manage this list', null));
+  accessList.slice().sort((a, b) => a.id.localeCompare(b.id)).forEach(a => {
+    addRow(a.id, a.addedBy ? `Added by ${a.addedBy}` : 'Has access', async () => {
+      if (!confirm(`Remove access for ${a.id}?`)) return;
+      try { await db.collection(ACCESS).doc(a.id).delete(); toast('Access removed'); }
+      catch (err){ console.error(err); toast('Could not remove — check Firestore rules'); }
+    });
+  });
+  if (!accessList.length){
+    const hint = document.createElement('div');
+    hint.className = 'empty';
+    hint.textContent = 'No one else has been added yet.';
+    wrap.appendChild(hint);
+  }
+}
+$('accessAddBtn').addEventListener('click', async () => {
+  const email = $('accessEmail').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('Enter a valid email address'); return; }
+  if (OWNER_EMAILS.includes(email) || accessList.some(a => a.id === email)){ toast('That email already has access'); return; }
+  try {
+    await db.collection(ACCESS).doc(email).set({
+      email, addedBy: (currentUser && currentUser.email) || '',
+      addedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    $('accessEmail').value = '';
+    toast(`${email} can now use the invoice page`);
+  } catch (err){ console.error(err); toast('Could not add — check Firestore rules'); }
+});
+
+window.HBInvoices = { init, runViewer };
+
+})();
+if (IV_VIEW_ID) window.HBInvoices.runViewer(IV_VIEW_ID);
 </script>
 </body>
 </html>
